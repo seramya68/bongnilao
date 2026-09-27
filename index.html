@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhà của Bông</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+<!-- WELCOME TO BÔNG'S HOUSE -->
+<div class="welcome-overlay" id="welcomeOverlay">
+  <div class="welcome-card">
+    <div class="welcome-flower">🌸</div>
+
+    <div class="welcome-kicker">A LITTLE NOTE FROM BÔNG</div>
+
+    <h1>Xin chào mọi người,<br><span>bạn bè hay gọi mình là Bông ♡</span></h1>
+
+    <div class="welcome-story">
+      <p>
+        Nói nhỏ xíu là cái tên <strong>“Bông Ni Lao”</strong> thật ra bắt nguồn từ...
+        <strong>Bao Ni Lông</strong> =))) Lúc đầu bị trêu thì thấy hài hài thôi,
+        mà sau này ngẫm lại thấy cũng hay, vì bao ni lông ngàn năm không phân huỷ mà,
+        trường tồn với thời gian lun haha.
+      </p>
+
+      <p>
+        Hiện tại mình đang là học sinh lớp 12 chuyên Anh. Đó cũng là lý do thỉnh thoảng
+        văn phong mình hay bị chêm tí tiếng Anh vào. Đợt trước bị nhắc nhở nhiều nên
+        dạo này mình cũng đang cố gắng chỉnh lại rồi nè, hihi.
+      </p>
+
+      <p>
+        Cơ mà cũng chính vì vậy nên mình cực kỳ thích viết về các anh Tây,
+        vừa viết vừa tìm hiểu thêm văn hóa các nước luôn.
+        Gu của mình là mấy anh chồng <strong>“ngược suy”</strong>,
+        tại gu này có nhiều chiều sâu tâm lý để khai thác lắm.
+      </p>
+
+      <p>
+        Mục tiêu của mình là tạo ra những anh chồng có cảm giác thật nhất có thể.
+        Dẫu đôi lúc chưa tròn trịa hẳn nhưng mình luôn cố hết sức,
+        chứ không muốn để nét tính cách bị ảo đâu!
+      </p>
+
+      <p>
+        Thật lòng thì việc chat với char là cách giải stress siêu hiệu quả của mình =))))
+        Dù ngoài đời mình đã có người yêu rồi, nhưng cảm giác ngồi trò chuyện với
+        một nhân vật ảo lại mang đến một cảm giác rất riêng, chữa lành cực kỳ.
+      </p>
+
+      <p>
+        Cảm ơn mọi người thật nhiều vì đã luôn đồng hành và ủng hộ Bông trên hành trình này.
+        Mình sẽ luôn cố gắng mang đến cho các cậu thật nhiều trải nghiệm thú vị
+        và mới mẻ hơn nữa nha!
+      </p>
+
+      <p class="welcome-love">Luv u all rất nhiềuuu 💖</p>
+    </div>
+
+    <label class="welcome-remember">
+      <input type="checkbox" id="dontShowWelcome">
+      <span>Đừng hiện lại lời chào trên thiết bị này</span>
+    </label>
+
+    <div class="welcome-actions welcome-actions-single">
+      <button class="welcome-enter" onclick="enterBongHouse()">
+        Vào Nhà của Bông ♡
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      NHÀ CỦA BÔNG
+      <small>CHARACTER LIBRARY</small>
+    </div>
+
+    <nav class="nav">
+      <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ <span>Trang chủ</span></button>
+      <button onclick="scrollToCategory('traiTay')">♡ <span>Chồng Tây</span></button>
+      <button onclick="scrollToCategory('traiViet')">♡ <span>Chồng Việt Nam</span></button>
+      <button onclick="showSaved()">☆ <span>Đã lưu</span></button>
+      <button onclick="toggleChat()">💬 <span>Bông</span></button>
+    </nav>
+
+    
+  </aside>
+
+  <main class="main">
+
+    <header class="topbar">
+      <div class="top-home-mark">
+        <span class="top-home-flower">🌸</span>
+        <div>
+          <small>WELCOME HOME</small>
+          <strong>Nhà của Bông</strong>
+        </div>
+      </div>
+
+      <div class="top-actions-v5">
+        <button class="pill-btn saved-btn" onclick="showSaved()">♡ <span id="savedCount">0</span> đã lưu</button>
+
+        <button class="pill-btn login-btn" id="authButton" onclick="openAuth()">
+          Đăng nhập / Đăng ký
+        </button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>Chọn một người rồi đọc câu chuyện của họ ♡</h1>
+      <div class="hero-random">
+        <div class="hero-random-copy">
+          <span class="hero-random-eyebrow">🎲 BÔNG CHỌN HỘ NÈ</span>
+          <div class="hero-random-title">Không biết bắt đầu với ai?</div>
+          <div class="hero-random-sub" id="heroRandomText">
+            Bấm thử một cái, Bông bốc ngẫu nhiên một anh cho bạn =)))
+          </div>
+        </div>
+
+        <button class="hero-random-button" onclick="randomCharacterFromHero()">
+          <span class="hero-dice">🎲</span>
+          <span>Bốc chồng hôm nay</span>
+        </button>
+      </div>
+
+      <div class="search">
+        <span>⌕</span>
+        <input id="searchInput" placeholder="Tìm tên nhân vật...">
+        <button onclick="renderAll()">Tìm</button>
+      </div>
+    </section>
+
+    <div id="library">
+
+      <section class="category-section" id="traiTay">
+        <div class="category-head">
+          <div class="category-title">
+            <h2>Chồng Tây</h2>
+            <span class="category-count" id="westernCount">0</span>
+          </div>
+        </div>
+        <div class="cards" id="westernGrid"></div>
+      </section>
+
+      <section class="category-section" id="traiViet">
+        <div class="category-head">
+          <div class="category-title">
+            <h2>Chồng Việt Nam</h2>
+            <span class="category-count" id="vietnamCount">0</span>
+          </div>
+        </div>
+        <div class="cards" id="vietnamGrid"></div>
+      </section>
+
+    </div>
+
+    <section class="bottom-row">
+      <div class="panel">
+        <h3>Thư viện truyện ♡</h3>
+        <p>
+          Chọn một nhân vật để đọc Background Story và Opening Scene đầy đủ.
+          Nội dung được trình bày theo từng đoạn để đọc lâu vẫn dễ theo dõi.
+        </p>
+      </div>
+
+      <div class="panel bong">
+        <div class="bong-avatar">🌷</div>
+        <div>
+          <h3>Bông</h3>
+          <p>Nhắn Bông khi cần hỏi link, báo lỗi hoặc tìm nhân vật.</p>
+          <button class="pill-btn saved-btn" style="margin-top:10px" onclick="toggleChat()">Nhắn Bông →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- PROFILE -->
+<div class="overlay" id="profileOverlay" onclick="overlayClose(event,'profileOverlay')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Hồ sơ nhân vật</h3>
+      <button class="close-btn" onclick="closeOverlay('profileOverlay')">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="profile-grid">
+        <div>
+          <img class="profile-main-img" id="profileMain" alt="Ảnh nhân vật" onerror="fallbackImage(this)">
+        </div>
+
+        <div class="profile-info">
+          <h1 id="profileName"></h1>
+          <div class="profile-sub" id="profileSub"></div>
+          <div class="profile-quote" id="profileQuote"></div>
+          <div id="profileMeta"></div>
+
+          <div class="character-audio-bar" id="characterAudioBar">
+            <div class="audio-copy">
+              <span class="audio-icon">♫</span>
+              <div>
+                <strong id="audioCharacterName">Nhạc nhân vật</strong>
+                <small id="audioFileName"></small>
+              </div>
+            </div>
+
+            <button class="audio-toggle" id="audioToggleButton" onclick="toggleCharacterMusic()">❚❚ Tắt nhạc</button>
+          </div>
+
+          <div class="profile-actions">
+            <button class="primary" onclick="openReader(currentId,'background')">Đọc truyện</button>
+            <button class="secondary" id="profileFav" onclick="toggleCurrentFavorite()">♡ Lưu nhân vật</button>
+            <a class="secondary" id="ggaiBtn" href="#" target="_blank" rel="noopener">Mở GGAI ↗</a>
+          </div>
+
+          <div class="gallery-label">Gallery</div>
+          <div class="gallery-grid" id="galleryGrid"></div>
+
+          <section class="community-review-section">
+            <div class="community-review-head">
+              <div>
+                <div class="gallery-label">Đánh giá cộng đồng</div>
+                <div class="community-review-sub">Review từ những người đã chơi nhân vật này ♡</div>
+              </div>
+
+              <button class="write-review-btn" onclick="openReviewModal()">
+                ♥ Viết đánh giá
+              </button>
+            </div>
+
+            <div class="review-overview" id="profileReviewOverview">
+              <div class="review-score-big">
+                <strong id="profileReviewScore">—</strong>
+                <span>/ 5</span>
+                <div class="review-hearts">♥♥♥♥♥</div>
+                <small id="profileReviewCount">Chưa có đánh giá</small>
+              </div>
+
+              <div class="review-breakdown" id="profileReviewBreakdown"></div>
+            </div>
+
+            <div class="public-review-list" id="profileReviewList">
+              <div class="review-empty">Chưa có ai review anh này hết á =)))</div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- REVIEW MODAL -->
+<div class="overlay" id="reviewOverlay" onclick="overlayClose(event,'reviewOverlay')">
+  <div class="modal review-modal">
+    <div class="modal-head">
+      <div>
+        <h3>Review nhân vật ♡</h3>
+        <div class="admin-sub" id="reviewCharacterName"></div>
+      </div>
+      <button class="close-btn" onclick="closeOverlay('reviewOverlay')">×</button>
+    </div>
+
+    <div class="review-body">
+      <div class="played-question" id="playedQuestion">
+        <div class="played-icon">🎮</div>
+        <h2>Bạn đã chơi nhân vật này chưa?</h2>
+        <p>Review chỉ dành cho người đã thật sự chat với char nha =)))</p>
+
+        <div class="played-actions">
+          <button class="played-yes" onclick="setPlayedStatus(true)">Rồi ♡</button>
+          <button class="played-no" onclick="setPlayedStatus(false)">Chưa</button>
+        </div>
+      </div>
+
+      <div class="review-form hidden" id="reviewForm">
+        <div class="review-rating-grid">
+          <div class="review-rating-row">
+            <div>
+              <strong>Cách yêu</strong>
+              <small>Cách ảnh quan tâm, phản ứng và thể hiện tình cảm</small>
+            </div>
+            <div class="heart-picker" data-field="love_rating"></div>
+          </div>
+
+          <div class="review-rating-row">
+            <div>
+              <strong>Độ chân thật</strong>
+              <small>Tính cách và phản ứng có giống một người thật không</small>
+            </div>
+            <div class="heart-picker" data-field="realism_rating"></div>
+          </div>
+
+          <div class="review-rating-row">
+            <div>
+              <strong>Chemistry</strong>
+              <small>Cảm giác tương tác, kéo - đẩy và kết nối với user</small>
+            </div>
+            <div class="heart-picker" data-field="chemistry_rating"></div>
+          </div>
+
+          <div class="review-rating-row">
+            <div>
+              <strong>Cốt truyện</strong>
+              <small>Background, opening và độ cuốn của tình huống</small>
+            </div>
+            <div class="heart-picker" data-field="story_rating"></div>
+          </div>
+        </div>
+
+        <div class="review-live-score">
+          Điểm của bạn:
+          <strong id="reviewLiveScore">5.0</strong>/5 ♥
+        </div>
+
+        <label class="review-field">
+          <span>Review ngắn</span>
+          <textarea id="reviewComment" maxlength="1500" rows="5" placeholder="Ví dụ: ảnh chăm nhưng không bị kiểm soát, cãi nhau rất thật..."></textarea>
+        </label>
+
+        <label class="review-field">
+          <span>Tips cho người chơi</span>
+          <textarea id="reviewTips" maxlength="800" rows="3" placeholder="Ví dụ: đừng ép ảnh nói ngay khi đang giận =)))"></textarea>
+        </label>
+
+        <label class="review-field">
+          <span>Mong Bông cải thiện gì?</span>
+          <textarea id="reviewImprovement" maxlength="800" rows="3" placeholder="Có đoạn nào hơi nhanh, hơi OOC hay muốn thêm gì thì ghi ở đây nha."></textarea>
+        </label>
+
+        <div class="review-submit-row">
+          <button class="review-submit" onclick="submitReview()">Đăng đánh giá ♡</button>
+          <button class="review-delete hidden" id="reviewDeleteButton" onclick="deleteMyReview()">Xóa review của mình</button>
+        </div>
+
+        <div class="auth-message" id="reviewMessage"></div>
+      </div>
+
+      <div class="review-not-played hidden" id="reviewNotPlayed">
+        <div>🥹</div>
+        <h2>Chơi thử ảnh trước nhaaa</h2>
+        <p>Xong rồi quay lại kể Bông nghe ảnh có làm bạn đau tim không =)))</p>
+        <button onclick="closeOverlay('reviewOverlay')">Okii ♡</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- READER -->
+<div class="overlay" id="readerOverlay" onclick="overlayClose(event,'readerOverlay')">
+  <div class="modal reader-modal">
+    <div class="modal-head">
+      <h3 id="readerTitle">Đọc truyện</h3>
+      <button class="close-btn" onclick="closeOverlay('readerOverlay')">×</button>
+    </div>
+
+    <div class="reader-tools">
+      <div class="chapter-buttons">
+        <button id="bgBtn" onclick="setChapter('background')">Background Story</button>
+        <button id="openingBtn" onclick="setChapter('opening')">Opening Scene</button>
+      </div>
+
+      <div class="reader-right-tools">
+        <button class="reader-audio-btn" id="readerAudioButton" onclick="toggleCharacterMusic()">♫ Tắt nhạc</button>
+        <div class="font-tools">
+          <button onclick="changeFont(-1)">A−</button>
+          <button onclick="changeFont(1)">A+</button>
+        </div>
+      </div>
+    </div>
+
+    <article class="reader" id="readerContent"></article>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="overlay" id="lightboxOverlay" onclick="closeOverlay('lightboxOverlay')">
+  <img id="lightboxImg" class="lightbox-img" alt="Gallery">
+</div>
+
+<!-- CHAT -->
+<div class="chat" id="chat">
+  <div class="chat-head">
+    <span>🌷 Bông</span>
+    <button class="close-btn" style="width:28px;height:28px;color:#fff;background:rgba(255,255,255,.18)" onclick="toggleChat()">×</button>
+  </div>
+
+  <div class="chat-body" id="chatBody">
+    <div class="bubble admin">Bông đây 🌷 Có gì nhắn tui nha.</div>
+  </div>
+
+  <div class="chat-input">
+    <input id="chatInput" placeholder="Nhắn cho Bông...">
+    <button onclick="sendChat()">Gửi</button>
+  </div>
+</div>
+
+
+<!-- AUTH -->
+<div class="overlay" id="authOverlay" onclick="overlayClose(event,'authOverlay')">
+  <div class="modal auth-modal">
+    <div class="modal-head">
+      <h3>Tài khoản</h3>
+      <button class="close-btn" onclick="closeOverlay('authOverlay')">×</button>
+    </div>
+
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <button id="signupTabBtn" class="auth-tab active" onclick="switchAuthTab('signup')">Tạo tài khoản</button>
+        <button id="loginTabBtn" class="auth-tab" onclick="switchAuthTab('login')">Đăng nhập</button>
+      </div>
+
+      <div id="signupPanel" class="auth-panel">
+        <h2>Chào mừng về nhà ♡</h2>
+        <p class="auth-desc">Tạo một tài khoản nhỏ để lưu tên và đăng nhập trên thiết bị này.</p>
+
+        <label>Tên hiển thị</label>
+        <input class="auth-input" id="signupDisplayName" placeholder="Ví dụ: Kiwi">
+
+        <label>Username</label>
+        <input class="auth-input" id="signupUsername" autocomplete="username" placeholder="Ví dụ: kiwi98">
+
+        <label>Password</label>
+        <input class="auth-input" id="signupPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
+
+        <label>Nhập lại password</label>
+        <input class="auth-input" id="signupPassword2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
+
+        <button class="auth-submit" onclick="signupLocal()">Sign up</button>
+
+        <div class="auth-message" id="signupMessage"></div>
+      </div>
+
+      <div id="loginPanel" class="auth-panel hidden">
+        <h2>Đăng nhập</h2>
+        <p class="auth-desc">Điền username và password của bạn.</p>
+
+        <label>Username</label>
+        <input class="auth-input" id="loginUsername" autocomplete="username" placeholder="Username">
+
+        <label>Password</label>
+        <input class="auth-input" id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+
+        <button class="auth-submit" onclick="loginLocal()">Đăng nhập</button>
+
+        <div class="auth-message" id="loginMessage"></div>
+      </div>
+
+      <div class="auth-demo-note" id="backendStatus">
+        Đang kiểm tra kết nối Supabase...
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<audio id="characterMusic" preload="auto" loop></audio>
+<div class="toast" id="toast"></div>
+
+
+<!-- ADMIN DASHBOARD -->
+<div class="overlay" id="adminOverlay" onclick="overlayClose(event,'adminOverlay')">
+  <div class="modal admin-modal">
+    <div class="modal-head">
+      <div>
+        <h3>Bông Admin</h3>
+        <div class="admin-sub">Quản lý thư viện nhân vật</div>
+      </div>
+      <button class="close-btn" onclick="closeOverlay('adminOverlay')">×</button>
+    </div>
+
+    <div class="admin-layout">
+      <aside class="admin-nav">
+        <button class="admin-nav-btn active" data-admin="messages" onclick="switchAdminTab('messages',this)">💬 Tin nhắn</button>
+        <button class="admin-nav-btn" data-admin="characters" onclick="switchAdminTab('characters',this)">♡ Nhân vật</button>
+        <button class="admin-nav-btn" data-admin="reviews" onclick="switchAdminTab('reviews',this)">♥ Đánh giá</button>
+        <button class="admin-nav-btn" data-admin="upload" onclick="switchAdminTab('upload',this)">＋ Thêm nhân vật</button>
+        <button class="admin-nav-btn danger" onclick="adminLogout()">↪ Đăng xuất</button>
+      </aside>
+
+      <section class="admin-content">
+        <div id="adminMessagesPanel" class="admin-panel-view">
+          <div class="admin-section-head">
+            <div>
+              <h2>Tin nhắn gửi Bông</h2>
+              <p>Tin nhắn được lưu trong Supabase.</p>
+            </div>
+            <span class="admin-count" id="adminMessageCount">0</span>
+          </div>
+
+          <div id="adminMessagesList" class="admin-message-list"></div>
+        </div>
+
+        <div id="adminCharactersPanel" class="admin-panel-view hidden">
+          <div class="admin-section-head">
+            <div>
+              <h2>Nhân vật hiện có</h2>
+              <p>Nhân vật gốc + nhân vật được lưu trong Supabase.</p>
+            </div>
+          </div>
+          <div id="adminCharacterList" class="admin-character-list"></div>
+        </div>
+
+        
+        <div id="adminReviewsPanel" class="admin-panel-view hidden">
+          <div class="admin-section-head">
+            <div>
+              <h2>Đánh giá cộng đồng</h2>
+              <p>Review, tips và góp ý người chơi gửi cho từng nhân vật.</p>
+            </div>
+            <span class="admin-count" id="adminReviewCount">0</span>
+          </div>
+
+          <div id="adminReviewsList" class="admin-message-list"></div>
+        </div>
+
+        <div id="adminUploadPanel" class="admin-panel-view hidden">
+          <div class="admin-section-head">
+            <div>
+              <h2>Thêm nhân vật</h2>
+              <p>Điền dữ liệu rồi lưu trực tiếp vào Supabase.</p>
+            </div>
+          </div>
+
+          <div class="admin-form-grid">
+            <label>
+              <span>Tên nhân vật</span>
+              <input id="adminName" placeholder="Ví dụ: Trần Khải Nguyên">
+            </label>
+
+            <label>
+              <span>Category</span>
+              <select id="adminCategory">
+                <option>Chồng Tây</option>
+                <option>Chồng Việt Nam</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Tuổi</span>
+              <input id="adminAge" placeholder="29 tuổi">
+            </label>
+
+            <label>
+              <span>Nghề nghiệp</span>
+              <input id="adminJob" placeholder="Giám đốc Chiến lược Sản phẩm">
+            </label>
+
+            <label>
+              <span>Nơi ở</span>
+              <input id="adminLocation" placeholder="TP. Hồ Chí Minh, Việt Nam">
+            </label>
+
+            <label>
+              <span>Folder ảnh</span>
+              <input id="adminFolder" placeholder="khainguyen">
+            </label>
+
+            <label>
+              <span>File nhạc</span>
+              <input id="adminMusic" placeholder="khainguyen.mp3">
+            </label>
+
+            <label>
+              <span>GGAI link</span>
+              <input id="adminGgai" placeholder="https://...">
+            </label>
+
+            <label class="admin-span-2">
+              <span>Tags (ngăn cách bằng dấu phẩy)</span>
+              <input id="adminTags" placeholder="Marriage, Angst, Second Choice">
+            </label>
+
+            <label class="admin-span-2">
+              <span>Quote</span>
+              <textarea id="adminQuote" rows="3" placeholder="Câu quote của nhân vật"></textarea>
+            </label>
+
+            <label class="admin-span-2">
+              <span>Background Story</span>
+              <textarea id="adminBackground" rows="10" placeholder="Dán Background Story vào đây..."></textarea>
+            </label>
+
+            <label class="admin-span-2">
+              <span>Opening Scene</span>
+              <textarea id="adminOpening" rows="10" placeholder="Dán Opening Scene vào đây..."></textarea>
+            </label>
+
+            <label class="admin-span-2">
+              <span>PRO5 — chỉ Admin được xem</span>
+              <textarea id="adminPro5" rows="14" placeholder="Dán full PRO5 / system prompt vào đây..."></textarea>
+            </label>
+          </div>
+
+          <div class="admin-upload-hint">
+            Ảnh vẫn đặt thủ công tại <code>assets/images/&lt;folder&gt;/profile.jpg</code> và <code>1.jpg → 4.jpg</code>.
+            Nhạc đặt tại <code>assets/music/&lt;tên-file&gt;.mp3</code>.
+          </div>
+
+          <button class="auth-submit" onclick="adminAddCharacter()">Lưu nhân vật</button>
+          <div class="auth-message" id="adminUploadMessage"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/characters.js"></script>
+<script src="assets/js/stories.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
