@@ -88,8 +88,8 @@
 
     <nav class="nav">
       <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ <span>Trang chủ</span></button>
-      <button onclick="scrollToCategory('traiTay')">♡ <span>Chồng Tây</span></button>
-      <button onclick="scrollToCategory('traiViet')">♡ <span>Chồng Việt Nam</span></button>
+      <button onclick="scrollToCategory('traiTay')">♡ <span>Nhà ngoại</span></button>
+      <button onclick="scrollToCategory('traiViet')">♡ <span>Nhà nội</span></button>
       <button onclick="showSaved()">☆ <span>Đã lưu</span></button>
       <button onclick="toggleChat()">💬 <span>Bông</span></button>
     </nav>
@@ -146,7 +146,10 @@
       <section class="category-section" id="traiTay">
         <div class="category-head">
           <div class="category-title">
-            <h2>Chồng Tây</h2>
+            <div>
+              <h2>Nhà ngoại</h2>
+              <small>trai Tây</small>
+            </div>
             <span class="category-count" id="westernCount">0</span>
           </div>
         </div>
@@ -156,7 +159,10 @@
       <section class="category-section" id="traiViet">
         <div class="category-head">
           <div class="category-title">
-            <h2>Chồng Việt Nam</h2>
+            <div>
+              <h2>Nhà nội</h2>
+              <small>trai Việt</small>
+            </div>
             <span class="category-count" id="vietnamCount">0</span>
           </div>
         </div>
@@ -189,25 +195,24 @@
 
 <!-- PROFILE -->
 <div class="overlay" id="profileOverlay" onclick="overlayClose(event,'profileOverlay')">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>Hồ sơ nhân vật</h3>
+  <div class="modal profile-modal-v12">
+    <div class="modal-head profile-modal-head-v12">
+      <div>
+        <small class="profile-head-kicker">CHARACTER FILE</small>
+        <h3>Hồ sơ nhân vật</h3>
+      </div>
       <button class="close-btn" onclick="closeOverlay('profileOverlay')">×</button>
     </div>
 
-    <div class="modal-body">
-      <div class="profile-grid">
-        <div>
-          <img class="profile-main-img" id="profileMain" alt="Ảnh nhân vật" onerror="fallbackImage(this)">
-        </div>
+    <div class="modal-body profile-modal-body-v12">
+      <div class="profile-grid profile-grid-v12">
+        <aside class="profile-visual-v12">
+          <div class="profile-photo-shell-v12">
+            <img class="profile-main-img" id="profileMain" alt="Ảnh nhân vật" onerror="fallbackImage(this)">
+            <div class="profile-category-float-v12" id="profileSub"></div>
+          </div>
 
-        <div class="profile-info">
-          <h1 id="profileName"></h1>
-          <div class="profile-sub" id="profileSub"></div>
-          <div class="profile-quote" id="profileQuote"></div>
-          <div id="profileMeta"></div>
-
-          <div class="character-audio-bar" id="characterAudioBar">
+          <div class="character-audio-bar profile-audio-v12" id="characterAudioBar">
             <div class="audio-copy">
               <span class="audio-icon">♫</span>
               <div>
@@ -215,53 +220,171 @@
                 <small id="audioFileName"></small>
               </div>
             </div>
-
             <button class="audio-toggle" id="audioToggleButton" onclick="toggleCharacterMusic()">❚❚ Tắt nhạc</button>
           </div>
+        </aside>
 
-          <div class="profile-actions">
-            <button class="primary" onclick="openReader(currentId,'background')">Đọc truyện</button>
-            <button class="secondary" id="profileFav" onclick="toggleCurrentFavorite()">♡ Lưu nhân vật</button>
-            <a class="secondary" id="ggaiBtn" href="#" target="_blank" rel="noopener">Mở GGAI ↗</a>
+        <section class="profile-info profile-info-v12">
+          <div class="profile-title-row-v12">
+            <div>
+              <h1 id="profileName"></h1>
+              <div class="profile-quickline-v12" id="profileQuickline"></div>
+            </div>
+            <button class="profile-heart-v12" id="profileFav" onclick="toggleCurrentFavorite()">♡</button>
           </div>
 
-          <div class="gallery-label">Gallery</div>
-          <div class="gallery-grid" id="galleryGrid"></div>
+          <div class="profile-quote profile-quote-v12" id="profileQuote"></div>
 
-          <section class="community-review-section">
-            <div class="community-review-head">
+          <div class="profile-actions profile-actions-v12">
+            <button class="primary" id="ggaiBtn" onclick="handleGgaiAction()">Mở GGAI ↗</button>
+            <button class="secondary" onclick="openReader(currentId,'background')">Đọc truyện</button>
+          </div>
+
+          <div class="profile-tabs-v12" role="tablist" aria-label="Nội dung hồ sơ">
+            <button class="active" data-profile-tab="overview" onclick="switchProfileTab('overview',this)">Tổng quan</button>
+            <button data-profile-tab="story" onclick="switchProfileTab('story',this)">Cốt truyện</button>
+            <button data-profile-tab="npcs" onclick="switchProfileTab('npcs',this)">NPC</button>
+            <button data-profile-tab="play" onclick="switchProfileTab('play',this)">Chơi gì?</button>
+            <button data-profile-tab="reviews" onclick="switchProfileTab('reviews',this)">Review</button>
+          </div>
+
+          <div class="profile-tab-panel-v12" id="profileTabOverview">
+            <div class="player-role-card-v12">
+              <div class="player-role-icon-v12">YOU</div>
               <div>
-                <div class="gallery-label">Đánh giá cộng đồng</div>
-                <div class="community-review-sub">Review từ những người đã chơi nhân vật này ♡</div>
+                <div class="profile-section-eyebrow-v12">BẠN TRONG PLOT</div>
+                <h3 id="profilePlayerRoleTitle">Vai của bạn</h3>
+                <p id="profilePlayerRoleText"></p>
               </div>
+            </div>
 
-              <button class="write-review-btn" onclick="openReviewModal()">
-                ♥ Viết đánh giá
+            <div id="profileMeta"></div>
+
+            <div class="gallery-label gallery-label-v12">Gallery</div>
+            <div class="gallery-grid" id="galleryGrid"></div>
+          </div>
+
+          <div class="profile-tab-panel-v12 hidden" id="profileTabStory">
+            <div class="story-jump-grid-v12">
+              <button onclick="openReader(currentId,'background')">
+                <span>01</span>
+                <strong>Background Story</strong>
+                <small>Đọc toàn bộ lịch sử, mối quan hệ và mạch cảm xúc.</small>
+              </button>
+              <button onclick="openReader(currentId,'opening')">
+                <span>02</span>
+                <strong>Opening Scene</strong>
+                <small>Vào đúng điểm bắt đầu để tiếp tục roleplay.</small>
               </button>
             </div>
+            <div class="story-helper-v12">
+              <strong>Mẹo:</strong> nếu không muốn đọc hết ngay, qua tab <b>NPC</b> để biết ai là ai, rồi sang <b>Chơi gì?</b> để lấy event + tin nhắn mở màn.
+            </div>
+          </div>
 
-            <div class="review-overview" id="profileReviewOverview">
-              <div class="review-score-big">
-                <strong id="profileReviewScore">—</strong>
-                <span>/ 5</span>
-                <div class="review-hearts">♥♥♥♥♥</div>
-                <small id="profileReviewCount">Chưa có đánh giá</small>
+          <div class="profile-tab-panel-v12 hidden" id="profileTabNpcs">
+            <div class="profile-section-head-v12">
+              <div>
+                <div class="profile-section-eyebrow-v12">WORLD GUIDE</div>
+                <h3>Những người bạn sẽ gặp</h3>
+                <p>NPC quan trọng trong thế giới của char, đọc nhanh trước khi chơi là hiểu context liền.</p>
+              </div>
+            </div>
+            <div class="npc-grid-v12" id="profileNpcList"></div>
+          </div>
+
+          <div class="profile-tab-panel-v12 hidden" id="profileTabPlay">
+            <div class="play-header-v12">
+              <div>
+                <div class="profile-section-eyebrow-v12">WHEN CHAT GETS QUIET</div>
+                <h3>Bí quá thì chơi gì với ảnh?</h3>
+                <p>Event được viết riêng theo world và timeline của từng nhân vật. Chọn mood hợp đoạn chat hiện tại rồi copy câu mở màn sang GGAI.</p>
+                <small class="play-event-count-v13" id="profileEventCount"></small>
+              </div>
+              <button class="shuffle-event-btn-v12" onclick="shuffleCharacterEvent()">🎲 Bốc event</button>
+            </div>
+
+            <div class="event-filter-row-v12" id="profileEventFilters"></div>
+            <div class="event-list-v12" id="profileEventList"></div>
+
+            <div class="event-spotlight-v12" id="profileEventSpotlight">
+              <div class="event-spotlight-top-v12">
+                <span id="profileEventCategory">Event</span>
+                <small>copy & paste</small>
+              </div>
+              <h3 id="profileEventTitle">Chọn một event ở trên nha ♡</h3>
+              <p id="profileEventDescription">Tui sẽ viết sẵn điểm vào để bạn khỏi phải nghĩ câu mở đầu.</p>
+              <div class="event-prompt-box-v12" id="profileEventPrompt">—</div>
+              <div class="event-action-row-v13">
+                <button class="copy-prompt-btn-v12" onclick="copyCurrentEventPrompt()">📋 Copy tin nhắn mở màn</button>
+                <button class="open-after-copy-btn-v13" onclick="copyAndOpenCurrentEvent()">Copy + mở GGAI ↗</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-tab-panel-v12 hidden" id="profileTabReviews">
+            <section class="community-review-section community-review-section-v12">
+              <div class="community-review-head">
+                <div>
+                  <div class="gallery-label">Đánh giá cộng đồng</div>
+                  <div class="community-review-sub">Review từ những người đã chơi nhân vật này ♡</div>
+                </div>
+                <button class="write-review-btn" onclick="openReviewModal()">♥ Viết đánh giá</button>
               </div>
 
-              <div class="review-breakdown" id="profileReviewBreakdown"></div>
-            </div>
+              <div class="review-overview" id="profileReviewOverview">
+                <div class="review-score-big">
+                  <strong id="profileReviewScore">—</strong>
+                  <span>/ 5</span>
+                  <div class="review-hearts">♥♥♥♥♥</div>
+                  <small id="profileReviewCount">Chưa có đánh giá</small>
+                </div>
+                <div class="review-breakdown" id="profileReviewBreakdown"></div>
+              </div>
 
-            <div class="public-review-list" id="profileReviewList">
-              <div class="review-empty">Chưa có ai review anh này hết á =)))</div>
-            </div>
-          </section>
-
-        </div>
+              <div class="public-review-list" id="profileReviewList">
+                <div class="review-empty">Chưa có ai review anh này hết á =)))</div>
+              </div>
+            </section>
+          </div>
+        </section>
       </div>
     </div>
   </div>
 </div>
 
+<!-- CHARACTER LINK NOTIFICATION -->
+<div class="overlay" id="notifyOverlay" onclick="overlayClose(event,'notifyOverlay')">
+  <div class="modal notify-modal">
+    <div class="modal-head">
+      <div>
+        <h3>Nhắc tui khi có link ♡</h3>
+        <div class="admin-sub" id="notifyCharacterName"></div>
+      </div>
+      <button class="close-btn" onclick="closeOverlay('notifyOverlay')">×</button>
+    </div>
+
+    <div class="notify-body">
+      <div class="notify-icon">🔔</div>
+      <h2>Char này chưa có link GGAI</h2>
+      <p>Để lại email thật của bạn nha. Khi Bông mở link cho nhân vật này, web sẽ gửi một mail báo bạn liền ♡</p>
+
+      <label class="notify-field">
+        <span>Email nhận thông báo</span>
+        <input id="notifyEmail" type="email" placeholder="ban@gmail.com" autocomplete="email">
+      </label>
+
+      <div class="notify-privacy">Email chỉ dùng để gửi thông báo cho char bạn đăng ký, không hiện công khai.</div>
+
+      <div class="notify-actions">
+        <button class="notify-submit" id="notifySubscribeButton" onclick="subscribeCharacterLink()">🔔 Báo tui khi có link</button>
+        <button class="notify-unsubscribe hidden" id="notifyUnsubscribeButton" onclick="unsubscribeCharacterLink()">Hủy đăng ký</button>
+      </div>
+
+      <div class="auth-message" id="notifyMessage"></div>
+    </div>
+  </div>
+</div>
 
 <!-- REVIEW MODAL -->
 <div class="overlay" id="reviewOverlay" onclick="overlayClose(event,'reviewOverlay')">
@@ -486,10 +609,11 @@
 
     <div class="admin-layout">
       <aside class="admin-nav">
-        <button class="admin-nav-btn active" data-admin="messages" onclick="switchAdminTab('messages',this)">💬 Tin nhắn</button>
-        <button class="admin-nav-btn" data-admin="characters" onclick="switchAdminTab('characters',this)">♡ Nhân vật</button>
-        <button class="admin-nav-btn" data-admin="reviews" onclick="switchAdminTab('reviews',this)">♥ Đánh giá</button>
-        <button class="admin-nav-btn" data-admin="upload" onclick="switchAdminTab('upload',this)">＋ Thêm nhân vật</button>
+        <button class="admin-nav-btn active" data-admin="messages" onclick="switchAdminTab('messages',this)">💬 Hộp thư</button>
+        <button class="admin-nav-btn" data-admin="characters" onclick="switchAdminTab('characters',this)">🪪 Hồ sơ char</button>
+        <button class="admin-nav-btn" data-admin="reviews" onclick="switchAdminTab('reviews',this)">♥ Review</button>
+        <button class="admin-nav-btn" data-admin="links" onclick="switchAdminTab('links',this)">🔔 Link & mail</button>
+        <button class="admin-nav-btn" data-admin="upload" onclick="switchAdminTab('upload',this)">＋ Thêm char</button>
         <button class="admin-nav-btn danger" onclick="adminLogout()">↪ Đăng xuất</button>
       </aside>
 
@@ -529,6 +653,34 @@
           <div id="adminReviewsList" class="admin-message-list"></div>
         </div>
 
+        <div id="adminLinksPanel" class="admin-panel-view hidden">
+          <div class="admin-section-head">
+            <div>
+              <h2>Link GGAI & thông báo</h2>
+              <p>Đăng link cho char rồi gửi mail tới những người đang chờ.</p>
+            </div>
+          </div>
+
+          <div class="admin-link-grid">
+            <label>
+              <span>Nhân vật</span>
+              <select id="adminNotifyCharacter" onchange="syncAdminNotifyInfo()"></select>
+            </label>
+
+            <label>
+              <span>Link GGAI mới</span>
+              <input id="adminNotifyUrl" placeholder="https://...">
+            </label>
+          </div>
+
+          <div class="admin-link-summary" id="adminNotifySummary">Chọn nhân vật để xem số người đang chờ.</div>
+
+          <button class="auth-submit" onclick="publishCharacterLinkAndNotify()">Đăng link + gửi thông báo ♡</button>
+          <div class="auth-message" id="adminNotifyMessage"></div>
+
+          <div class="admin-link-note">Nếu chưa cấu hình Resend, link vẫn được lưu nhưng email chưa gửi. Sau khi thêm <code>RESEND_API_KEY</code>, nút này sẽ gửi mail thật.</div>
+        </div>
+
         <div id="adminUploadPanel" class="admin-panel-view hidden">
           <div class="admin-section-head">
             <div>
@@ -546,8 +698,8 @@
             <label>
               <span>Category</span>
               <select id="adminCategory">
-                <option>Chồng Tây</option>
-                <option>Chồng Việt Nam</option>
+                <option value="Chồng Tây">Nhà ngoại (trai Tây)</option>
+                <option value="Chồng Việt Nam">Nhà nội (trai Việt)</option>
               </select>
             </label>
 
@@ -624,6 +776,7 @@
 <script src="assets/js/stories.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/playground-data.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

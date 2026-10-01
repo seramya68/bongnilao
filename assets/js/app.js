@@ -11,6 +11,13 @@ let currentMusicCharacterId = null;
 let reviewStats = {};
 let currentProfileReviews = [];
 let myCurrentReview = null;
+let notificationCounts = {};
+let characterLinkOverrides = {};
+let myNotificationSubscription = null;
+let currentEventPrompt = "";
+let activeEventCategory = "Tất cả";
+let currentEventIndex = -1;
+const playgroundData = window.CHARACTER_PLAYGROUND || {};
 let reviewDraft = {
   love_rating: 5,
   realism_rating: 5,
@@ -108,9 +115,12 @@ function toggleFavorite(id){
 }
 
 function updateProfileFavorite(){
-  if(!$("profileFav"))return;
-  $("profileFav").textContent=
-    saved.has(currentId) ? "♥ Đã lưu" : "♡ Lưu nhân vật";
+  const btn=$("profileFav");
+  if(!btn)return;
+  const isSaved=saved.has(currentId);
+  btn.textContent=isSaved ? "♥" : "♡";
+  btn.title=isSaved ? "Bỏ lưu nhân vật" : "Lưu nhân vật";
+  btn.classList.toggle("saved",isSaved);
 }
 
 function toggleCurrentFavorite(){
@@ -127,6 +137,66 @@ function tagHTML(tags=[]){
       ${tags.map(t=>`<span class="char-tag">${escapeHTML(t)}</span>`).join("")}
     </div>
   `;
+}
+
+function displayCategoryLabel(category){
+  if(category==="Chồng Tây")return "Nhà ngoại";
+  if(category==="Chồng Việt Nam")return "Nhà nội";
+  return category || "";
+}
+
+function displayCategoryNote(category){
+  if(category==="Chồng Tây")return "trai Tây";
+  if(category==="Chồng Việt Nam")return "trai Việt";
+  return "";
+}
+
+function resolvePlaygroundKey(c){
+  if(!c)return "";
+
+  const candidates=[
+    c.id,
+    c.slug,
+    slugify(c.name || "")
+  ].filter(Boolean);
+
+  const aliases={
+    "milan-nguyen-van-dijk":"milan",
+    "milan-nguyen-van-dijk-":"milan",
+    "james-jamie-whitmore":"jamie",
+    "jamie-whitmore":"jamie",
+    "noah-minh-nguyen":"noah",
+    "nguyen-minh-khai":"minhkhai",
+    "le-hai-phong":"haiphong"
+  };
+
+  for(const raw of candidates){
+    const key=String(raw);
+    if(playgroundData[key])return key;
+    if(playgroundData[aliases[key]])return aliases[key];
+  }
+
+  return "";
+}
+
+function getPlayground(c){
+  const key=resolvePlaygroundKey(c);
+  return key ? playgroundData[key] : null;
+}
+
+function shortJob(job=""){
+  return String(job || "").split("·")[0].trim();
+}
+
+function cleanAge(age=""){
+  const value=String(age || "").trim();
+  if(!value)return "";
+  return /tuổi/i.test(value) ? value : `${value} tuổi`;
+}
+
+function cardTagline(c){
+  const data=getPlayground(c);
+  return data?.cardHook || data?.tagline || c.quote || "Mở hồ sơ để xem plot và bắt đầu chơi.";
 }
 
 function metaHTML(c,profile=false){
@@ -170,46 +240,61 @@ function cardRatingHTML(characterKey){
   `;
 }
 
-function cardHTML(c){
+
+function cardWaitingHTML(c){
+  if(c.ggai)return "";
+  const count=Number(notificationCounts[c.id] || 0);
   return `
-    <article class="card">
-      <div class="card-photo-wrap">
+    <div class="card-waiting-line">
+      <span>🔔</span>
+      ${count ? `<span><strong>${count}</strong> người đang chờ link</span>` : `<span>Đang chờ link GGAI</span>`}
+    </div>
+  `;
+}
+
+function cardHTML(c){
+  const age=cleanAge(c.age);
+  const job=shortJob(c.job);
+  const quick=[age,job].filter(Boolean).join(" · ");
+  const location=c.location || "";
+
+  return `
+    <article class="card card-v12">
+      <div class="card-photo-wrap card-photo-wrap-v12" onclick="openProfile('${c.id}')">
         <img
-          class="card-photo"
+          class="card-photo card-photo-v12"
           src="${imgPath(c,"profile.jpg")}"
           alt="${escapeHTML(c.name)}"
           onerror="fallbackImage(this)"
         >
 
-        <span class="category-badge">${escapeHTML(c.category)}</span>
+        <span class="category-badge category-badge-v12">${escapeHTML(displayCategoryLabel(c.category))}</span>
 
         <button
-          class="fav-btn ${saved.has(c.id) ? "saved" : ""}"
-          onclick="toggleFavorite('${c.id}')"
-        >
-          ${saved.has(c.id) ? "♥" : "♡"}
-        </button>
+          class="fav-btn fav-btn-v12 ${saved.has(c.id) ? "saved" : ""}"
+          onclick="event.stopPropagation();toggleFavorite('${c.id}')"
+          aria-label="Lưu ${escapeHTML(c.name)}"
+        >${saved.has(c.id) ? "♥" : "♡"}</button>
+
+        <div class="card-photo-gradient-v12"></div>
+        <div class="card-photo-name-v12">
+          <h3>${escapeHTML(c.name)}</h3>
+          <div>${escapeHTML(quick)}</div>
+        </div>
       </div>
 
-      <div class="card-body">
-        <h3>${escapeHTML(c.name)}</h3>
-        ${metaHTML(c)}
-        ${tagHTML(c.tags || [])}
+      <div class="card-body card-body-v12">
+        ${location ? `<div class="card-location-v12">⌖ ${escapeHTML(location)}</div>` : ""}
+        <p class="card-hook-v12">${escapeHTML(cardTagline(c))}</p>
 
-        ${cardRatingHTML(c.id)}
+        <div class="card-status-row-v12">
+          ${cardRatingHTML(c.id)}
+          ${!c.ggai ? cardWaitingHTML(c) : `<span class="card-link-ready-v12">GGAI ✓</span>`}
+        </div>
 
-        <p class="quote" style="margin-top:12px">
-          ${escapeHTML(c.quote || "")}
-        </p>
-
-        <div class="card-actions">
-          <button class="profile-btn" onclick="openProfile('${c.id}')">
-            Xem hồ sơ
-          </button>
-
-          <button class="story-btn" onclick="openReader('${c.id}','background')">
-            Đọc truyện
-          </button>
+        <div class="card-actions card-actions-v12">
+          <button class="profile-btn" onclick="openProfile('${c.id}')">Xem hồ sơ</button>
+          <button class="story-btn" onclick="openReader('${c.id}','background')" aria-label="Đọc truyện">↗</button>
         </div>
       </div>
     </article>
@@ -280,10 +365,16 @@ function openProfile(id){
   if(!c)return;
 
   currentId=id;
+  activeEventCategory="Tất cả";
+  currentEventIndex=-1;
+  currentEventPrompt="";
 
   $("profileName").textContent=c.name;
-  $("profileSub").textContent=c.category;
-  $("profileQuote").textContent=c.quote || "";
+  $("profileSub").textContent=displayCategoryLabel(c.category);
+
+  const quick=[cleanAge(c.age),shortJob(c.job)].filter(Boolean).join(" · ");
+  $("profileQuickline").textContent=quick;
+  $("profileQuote").textContent=c.quote || cardTagline(c);
   $("profileMeta").innerHTML=metaHTML(c,true)+tagHTML(c.tags || []);
 
   $("profileMain").src=imgPath(c,"profile.jpg");
@@ -300,21 +391,204 @@ function openProfile(id){
   `).join("");
 
   const ggai=$("ggaiBtn");
-
   if(c.ggai){
-    ggai.href=c.ggai;
-    ggai.textContent="Mở GGAI ↗";
+    ggai.textContent="Chơi ngay ↗";
     ggai.classList.remove("disabled");
   }else{
-    ggai.href="#";
-    ggai.textContent="GGAI sẽ thêm sau";
-    ggai.classList.add("disabled");
+    ggai.textContent="🔔 Báo tui khi có link";
+    ggai.classList.remove("disabled");
   }
 
+  renderCharacterPlayground(c);
+  switchProfileTab("overview");
   updateProfileFavorite();
   $("profileOverlay").classList.add("show");
   playCharacterMusic(id);
   loadCharacterReviews(id);
+}
+
+/* =========================================================
+   V12 — CHARACTER PLAYGROUND
+   ========================================================= */
+
+function switchProfileTab(tab,button=null){
+  const tabs=["overview","story","npcs","play","reviews"];
+
+  tabs.forEach(name=>{
+    const panel=$("profileTab"+name[0].toUpperCase()+name.slice(1));
+    panel?.classList.toggle("hidden",name!==tab);
+  });
+
+  document.querySelectorAll("[data-profile-tab]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.profileTab===tab);
+  });
+
+  if(button)button.classList.add("active");
+}
+
+function renderCharacterPlayground(c){
+  const data=getPlayground(c);
+
+  const role=data?.playerRole || {
+    title:"Vai của bạn trong câu chuyện",
+    text:"Char này chưa có bản tóm tắt vai người chơi. Đọc Background Story để lấy đúng context trước khi bắt đầu nha."
+  };
+
+  $("profilePlayerRoleTitle").textContent=role.title;
+  $("profilePlayerRoleText").textContent=role.text;
+
+  const npcList=$("profileNpcList");
+  const npcs=data?.npcs || [];
+
+  npcList.innerHTML=npcs.length
+    ? npcs.map((npc,index)=>`
+        <article class="npc-card-v12">
+          <div class="npc-avatar-v12">${escapeHTML((npc.name || "?").trim().charAt(0).toUpperCase())}</div>
+          <div class="npc-copy-v12">
+            <div class="npc-number-v12">NPC ${String(index+1).padStart(2,"0")}</div>
+            <h4>${escapeHTML(npc.name)}</h4>
+            <strong>${escapeHTML(npc.role || "")}</strong>
+            <p>${escapeHTML(npc.note || "")}</p>
+            ${npc.cue ? `<small>↳ ${escapeHTML(npc.cue)}</small>` : ""}
+          </div>
+        </article>
+      `).join("")
+    : `<div class="npc-empty-v12">Char này chưa có NPC guide. Bông sẽ bổ sung sau ♡</div>`;
+
+  renderEventFilters(c);
+  renderEventList(c);
+
+  const events=data?.events || [];
+  if($("profileEventCount")){
+    $("profileEventCount").textContent=events.length ? `${events.length} event riêng · chọn mood hoặc bốc ngẫu nhiên` : "Chưa có event riêng";
+  }
+  if(events.length){
+    selectCharacterEvent(0);
+  }else{
+    clearEventSpotlight(c);
+  }
+}
+
+function renderEventFilters(c){
+  const data=getPlayground(c);
+  const events=data?.events || [];
+  const categories=["Tất cả",...new Set(events.map(x=>x.category).filter(Boolean))];
+
+  $("profileEventFilters").innerHTML=categories.map(category=>`
+    <button
+      class="event-filter-btn-v12 ${category===activeEventCategory ? "active" : ""}"
+      onclick="setEventCategory('${escapeHTML(category).replace(/'/g,"&#039;")}')"
+    >${escapeHTML(category)}</button>
+  `).join("");
+}
+
+function setEventCategory(category){
+  activeEventCategory=category;
+  const c=findChar(currentId);
+  if(!c)return;
+  renderEventFilters(c);
+  renderEventList(c);
+}
+
+function filteredCharacterEvents(c){
+  const events=getPlayground(c)?.events || [];
+  return events
+    .map((event,index)=>({...event,__index:index}))
+    .filter(event=>activeEventCategory==="Tất cả" || event.category===activeEventCategory);
+}
+
+function renderEventList(c){
+  const list=filteredCharacterEvents(c);
+  const box=$("profileEventList");
+
+  if(!list.length){
+    box.innerHTML=`<div class="event-empty-v12">Chưa có event trong nhóm này.</div>`;
+    return;
+  }
+
+  box.innerHTML=list.map(event=>`
+    <button class="event-mini-card-v12 ${event.__index===currentEventIndex ? "active" : ""}" onclick="selectCharacterEvent(${event.__index})">
+      <span>${escapeHTML(event.category || "Event")}</span>
+      <strong>${escapeHTML(event.title)}</strong>
+      <small>${escapeHTML(event.teaser || event.description || "")}</small>
+    </button>
+  `).join("");
+}
+
+function selectCharacterEvent(index){
+  const c=findChar(currentId);
+  const events=getPlayground(c)?.events || [];
+  const event=events[index];
+  if(!event)return;
+
+  currentEventIndex=index;
+  currentEventPrompt=event.prompt || "";
+
+  $("profileEventCategory").textContent=event.category || "Event";
+  $("profileEventTitle").textContent=event.title || "Event";
+  $("profileEventDescription").textContent=event.description || "";
+  $("profileEventPrompt").textContent=currentEventPrompt || "—";
+
+  renderEventList(c);
+}
+
+function shuffleCharacterEvent(){
+  const c=findChar(currentId);
+  if(!c)return;
+
+  const list=filteredCharacterEvents(c);
+  if(!list.length){
+    showToast("Nhóm này chưa có event nha.");
+    return;
+  }
+
+  let pool=list;
+  if(pool.length>1 && currentEventIndex>=0){
+    pool=pool.filter(x=>x.__index!==currentEventIndex);
+  }
+
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  selectCharacterEvent(pick.__index);
+  showToast(`🎲 ${pick.title}`);
+}
+
+async function copyCurrentEventPrompt(){
+  if(!currentEventPrompt){
+    showToast("Chọn một event trước nha ♡");
+    return false;
+  }
+
+  try{
+    await navigator.clipboard.writeText(currentEventPrompt);
+    showToast("Đã copy tin nhắn mở màn ♡");
+    return true;
+  }catch{
+    const area=document.createElement("textarea");
+    area.value=currentEventPrompt;
+    area.style.position="fixed";
+    area.style.opacity="0";
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    showToast("Đã copy tin nhắn mở màn ♡");
+    return true;
+  }
+}
+
+async function copyAndOpenCurrentEvent(){
+  const copied=await copyCurrentEventPrompt();
+  if(!copied)return;
+  setTimeout(()=>handleGgaiAction(),180);
+}
+
+function clearEventSpotlight(c){
+  currentEventPrompt="";
+  currentEventIndex=-1;
+  $("profileEventCategory").textContent="Event";
+  $("profileEventTitle").textContent="Chưa có event riêng";
+  $("profileEventDescription").textContent=`Bông chưa viết event riêng cho ${c?.name || "char này"}.`;
+  $("profileEventPrompt").textContent="—";
 }
 
 /* =========================================================
@@ -665,6 +939,8 @@ async function initSupabase(){
   }
 
   await loadDatabaseCharacters();
+  await loadCharacterLinks();
+  await loadNotificationCounts();
   await loadReviewStats();
 
   sb.auth.onAuthStateChange(async (_event,session)=>{
@@ -1105,10 +1381,11 @@ async function openAdmin(){
   await renderAdminMessages();
   await renderAdminCharacters();
   await renderAdminReviews();
+  await renderAdminLinks();
 }
 
 function switchAdminTab(tab,button){
-  ["messages","characters","reviews","upload"].forEach(x=>{
+  ["messages","characters","reviews","links","upload"].forEach(x=>{
     $(`admin${x[0].toUpperCase()+x.slice(1)}Panel`)
       ?.classList.toggle("hidden",x!==tab);
   });
@@ -1122,6 +1399,7 @@ function switchAdminTab(tab,button){
   if(tab==="messages")renderAdminMessages();
   if(tab==="characters")renderAdminCharacters();
   if(tab==="reviews")renderAdminReviews();
+  if(tab==="links")renderAdminLinks();
 }
 
 async function renderAdminMessages(){
@@ -1259,7 +1537,7 @@ async function renderAdminCharacters(){
           <div>
             <div class="admin-character-name">${escapeHTML(c.name)}</div>
             <div class="admin-character-meta">
-              ${escapeHTML(c.category)} ·
+              ${escapeHTML(displayCategoryLabel(c.category))} ·
               ${escapeHTML(c.age)} ·
               ${escapeHTML(c.job)}
             </div>
@@ -1656,6 +1934,8 @@ async function loadCharacterReviews(characterKey){
       comment,
       tips,
       improvement,
+      admin_reply,
+      admin_reply_at,
       created_at,
       updated_at
     `)
@@ -1732,6 +2012,15 @@ function renderPublicReviewList(){
         ${
           improvement
           ? `<div class="public-review-extra"><strong>Mong Bông cải thiện:</strong> ${escapeHTML(improvement)}</div>`
+          : ""
+        }
+
+        ${
+          (r.admin_reply || "").trim()
+          ? `<div class="public-review-reply">
+              <div class="public-review-reply-head">🌸 Bông trả lời${r.admin_reply_at ? ` · ${new Date(r.admin_reply_at).toLocaleDateString("vi-VN")}` : ""}</div>
+              <div class="public-review-reply-text">${escapeHTML(r.admin_reply)}</div>
+            </div>`
           : ""
         }
       </article>
@@ -1961,6 +2250,8 @@ async function renderAdminReviews(){
       comment,
       tips,
       improvement,
+      admin_reply,
+      admin_reply_at,
       created_at
     `)
     .order("created_at",{ascending:false})
@@ -2023,12 +2314,54 @@ async function renderAdminReviews(){
           : ""
         }
 
+        <div class="admin-review-reply-box">
+          <label class="admin-reply-label">Trả lời review này</label>
+          <textarea class="admin-reply-textarea" id="adminReply_${r.id}" placeholder="Viết phản hồi của Bông cho review này...">${escapeHTML(r.admin_reply || "")}</textarea>
+          <div class="admin-reply-meta">${r.admin_reply_at ? `Đã trả lời: ${new Date(r.admin_reply_at).toLocaleString("vi-VN")}` : `Chưa có phản hồi từ Bông.`}</div>
+        </div>
+
         <div class="admin-card-actions">
+          <button onclick="adminReplyReview('${r.id}')">Lưu phản hồi</button>
           <button onclick="adminDeleteReview('${r.id}')">Xóa review</button>
         </div>
       </article>
     `;
   }).join("");
+}
+
+async function adminReplyReview(id){
+  if(!sb || !isAdminSession())return;
+
+  const el=$("adminReply_"+id);
+  if(!el)return;
+
+  const reply=(el.value || "").trim();
+  if(reply.length>1200){
+    showToast("Phản hồi tối đa 1200 ký tự nha.");
+    return;
+  }
+
+  const payload={
+    admin_reply: reply,
+    admin_reply_at: reply ? new Date().toISOString() : null
+  };
+
+  const {error}=await sb
+    .from("character_reviews")
+    .update(payload)
+    .eq("id",id);
+
+  if(error){
+    console.error("admin reply review",error);
+    showToast("Chưa lưu được phản hồi.");
+    return;
+  }
+
+  showToast(reply ? "Đã lưu phản hồi của Bông." : "Đã xóa phản hồi.");
+  await renderAdminReviews();
+  if(currentId){
+    await loadCharacterReviews(currentId);
+  }
 }
 
 async function adminDeleteReview(id){
@@ -2055,4 +2388,126 @@ async function adminDeleteReview(id){
   if(currentId){
     await loadCharacterReviews(currentId);
   }
+}
+
+
+/* =========================================================
+   V10 — CHARACTER LINK WAITLIST + EMAIL NOTIFICATIONS
+   ========================================================= */
+async function loadCharacterLinks(){
+  if(!sb)return;
+  const {data,error}=await sb.from("character_links").select("character_key,ggai_url");
+  if(error){console.error("character links",error);return;}
+  characterLinkOverrides={};
+  for(const row of (data || [])){
+    characterLinkOverrides[row.character_key]=row.ggai_url;
+    const c=findChar(row.character_key);
+    if(c && row.ggai_url)c.ggai=row.ggai_url;
+  }
+  renderAll();
+}
+
+async function loadNotificationCounts(){
+  if(!sb)return;
+  const {data,error}=await sb.rpc("get_character_notification_counts");
+  if(error){console.error("notification counts",error);return;}
+  notificationCounts={};
+  for(const row of (data || []))notificationCounts[row.character_key]=Number(row.waiting_count || 0);
+  renderAll();
+}
+
+function handleGgaiAction(){
+  const c=findChar(currentId);if(!c)return;
+  if(c.ggai){window.open(c.ggai,"_blank","noopener");return;}
+  openNotifyModal();
+}
+
+async function openNotifyModal(){
+  if(!authSession?.user){showToast("Đăng nhập trước rồi Bông mới nhớ email được nha ♡");openAuth();return;}
+  const c=findChar(currentId);if(!c)return;
+  $("notifyCharacterName").textContent=c.name;
+  setAuthMessage("notifyMessage","");
+  $("notifyEmail").disabled=false;
+  $("notifySubscribeButton").classList.remove("hidden");
+  $("notifyUnsubscribeButton").classList.add("hidden");
+  const remembered=localStorage.getItem("bongNotifyEmail") || "";
+  $("notifyEmail").value=remembered;
+  const {data,error}=await sb.from("character_notifications").select("id,email,notified_at").eq("character_key",currentId).eq("user_id",authSession.user.id).maybeSingle();
+  if(!error && data){
+    myNotificationSubscription=data;
+    $("notifyEmail").value=data.email || remembered;
+    $("notifySubscribeButton").textContent="✓ Đã đăng ký";
+    $("notifyUnsubscribeButton").classList.remove("hidden");
+  }else{
+    myNotificationSubscription=null;
+    $("notifySubscribeButton").textContent="🔔 Báo tui khi có link";
+  }
+  $("notifyOverlay").classList.add("show");
+}
+
+function validNotifyEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);}
+
+async function subscribeCharacterLink(){
+  if(!sb || !authSession?.user){showToast("Đăng nhập trước nha.");return;}
+  const email=$("notifyEmail").value.trim().toLowerCase();
+  if(!validNotifyEmail(email)){setAuthMessage("notifyMessage","Email chưa đúng định dạng á.","error");return;}
+  localStorage.setItem("bongNotifyEmail",email);
+  setAuthMessage("notifyMessage","Đang lưu...");
+  const {error}=await sb.from("character_notifications").upsert({character_key:currentId,user_id:authSession.user.id,email,notified_at:null},{onConflict:"user_id,character_key"});
+  if(error){setAuthMessage("notifyMessage",`Chưa đăng ký được: ${error.message}`,"error");return;}
+  setAuthMessage("notifyMessage","Đã đăng ký ♡ Có link Bông sẽ báo mail.","success");
+  $("notifySubscribeButton").textContent="✓ Đã đăng ký";
+  $("notifyUnsubscribeButton").classList.remove("hidden");
+  await loadNotificationCounts();
+}
+
+async function unsubscribeCharacterLink(){
+  if(!sb || !authSession?.user)return;
+  const {error}=await sb.from("character_notifications").delete().eq("character_key",currentId).eq("user_id",authSession.user.id);
+  if(error){setAuthMessage("notifyMessage","Chưa hủy được đăng ký.","error");return;}
+  myNotificationSubscription=null;
+  $("notifySubscribeButton").textContent="🔔 Báo tui khi có link";
+  $("notifyUnsubscribeButton").classList.add("hidden");
+  setAuthMessage("notifyMessage","Đã hủy đăng ký thông báo.","success");
+  await loadNotificationCounts();
+}
+
+async function renderAdminLinks(){
+  if(!isAdminSession())return;
+  const select=$("adminNotifyCharacter");if(!select)return;
+  await loadNotificationCounts();
+  const sorted=[...characters].sort((a,b)=>a.name.localeCompare(b.name,"vi"));
+  select.innerHTML=sorted.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");
+  syncAdminNotifyInfo();
+}
+
+function syncAdminNotifyInfo(){
+  const id=$("adminNotifyCharacter")?.value;
+  const c=findChar(id);if(!c)return;
+  const count=Number(notificationCounts[id] || 0);
+  $("adminNotifyUrl").value=c.ggai || "";
+  $("adminNotifySummary").innerHTML=`<strong>${escapeHTML(c.name)}</strong><br>🔔 ${count} người đang chờ link${c.ggai ? `<br>Link hiện tại: ${escapeHTML(c.ggai)}` : `<br>Chưa có link GGAI.`}`;
+}
+
+async function publishCharacterLinkAndNotify(){
+  if(!sb || !isAdminSession())return;
+  const characterKey=$("adminNotifyCharacter").value;
+  const c=findChar(characterKey);
+  const ggaiUrl=$("adminNotifyUrl").value.trim();
+  if(!c || !ggaiUrl.startsWith("http")){setAuthMessage("adminNotifyMessage","Điền link GGAI hợp lệ trước nha.","error");return;}
+  setAuthMessage("adminNotifyMessage","Đang đăng link và gửi thông báo...");
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){setAuthMessage("adminNotifyMessage","Session Admin hết hạn, đăng nhập lại nha.","error");return;}
+  const endpoint=`${window.BONG_SUPABASE_CONFIG.url}/functions/v1/notify-character-link`;
+  const response=await fetch(endpoint,{method:"POST",headers:{"Authorization":`Bearer ${session.access_token}`,"apikey":window.BONG_SUPABASE_CONFIG.anonKey,"Content-Type":"application/json"},body:JSON.stringify({characterKey,characterName:c.name,ggaiUrl})});
+  let result={};try{result=await response.json();}catch{}
+  if(!response.ok){setAuthMessage("adminNotifyMessage",result.error || "Edge Function chưa chạy được.","error");return;}
+  c.ggai=ggaiUrl;characterLinkOverrides[characterKey]=ggaiUrl;
+  await loadCharacterLinks();await loadNotificationCounts();
+  if(result.emailConfigured===false){
+    setAuthMessage("adminNotifyMessage",`Đã lưu link ♡ Có ${result.pending || 0} người đang chờ, nhưng Resend chưa được cấu hình nên chưa gửi mail.`,"success");
+  }else{
+    setAuthMessage("adminNotifyMessage",`Xong ♡ Đã gửi ${result.notified || 0} email${result.failed ? `, lỗi ${result.failed}` : ""}.`,"success");
+  }
+  syncAdminNotifyInfo();
 }
