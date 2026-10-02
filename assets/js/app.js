@@ -87,6 +87,102 @@ function slugify(text){
     .replace(/^-+|-+$/g,"");
 }
 
+function characterShareKey(c){
+  return String(c?.slug || slugify(c?.name || "") || c?.id || "").trim();
+}
+
+function sharedCharacterKeyFromUrl(){
+  try{
+    return new URL(window.location.href).searchParams.get("char") || "";
+  }catch{
+    return "";
+  }
+}
+
+function findCharByShareKey(key){
+  const target=String(key || "").trim().toLowerCase();
+  if(!target)return null;
+
+  return characters.find(c=>{
+    const keys=[c.id,c.slug,characterShareKey(c),slugify(c.name || "")]
+      .filter(Boolean)
+      .map(x=>String(x).toLowerCase());
+    return keys.includes(target);
+  }) || null;
+}
+
+const BONG_PUBLIC_SITE_URL = "https://seramya68.github.io/bongnilao/";
+
+function buildCharacterShareUrl(c){
+  // Share links must be public HTTP(S) URLs. Never share file:///D:/... links.
+  const configured=String(window.BONG_PUBLIC_SITE_URL || BONG_PUBLIC_SITE_URL).trim();
+  let url;
+
+  try{
+    url=new URL(configured);
+  }catch{
+    url=new URL(BONG_PUBLIC_SITE_URL);
+  }
+
+  url.search="";
+  url.hash="";
+  url.searchParams.set("char",characterShareKey(c));
+  return url.toString();
+}
+
+async function shareCharacter(id){
+  const c=findChar(id);
+  if(!c)return;
+
+  const url=buildCharacterShareUrl(c);
+  const quick=[cleanAge(c.age),shortJob(c.job)].filter(Boolean).join(" · ");
+  const shareData={
+    title:`Nhà của Bông — ${c.name}`,
+    text:`${c.name}${quick ? ` · ${quick}` : ""} — đọc hồ sơ nhân vật tại Nhà của Bông ♡`,
+    url
+  };
+
+  const canNativeShare =
+    /^https?:$/.test(window.location.protocol) &&
+    window.isSecureContext &&
+    typeof navigator.share === "function";
+
+  // Do not invoke the OS share sheet from file://. Some desktop browsers can
+  // crash or reject the request. Local file testing falls back to copy/prompt.
+  if(canNativeShare){
+    try{
+      await navigator.share(shareData);
+      return;
+    }catch(err){
+      if(err?.name==="AbortError")return;
+    }
+  }
+
+  if(window.isSecureContext && navigator.clipboard?.writeText){
+    try{
+      await navigator.clipboard.writeText(url);
+      showToast("Đã copy link nhân vật ♡");
+      return;
+    }catch{}
+  }
+
+  window.prompt("Copy link nhân vật này nha:",url);
+}
+
+function tryOpenSharedCharacter(){
+  const key=sharedCharacterKeyFromUrl();
+  if(!key)return false;
+
+  const c=findCharByShareKey(key);
+  if(!c)return false;
+
+  $("welcomeOverlay")?.classList.add("hidden");
+  if(currentId!==c.id || !$("profileOverlay")?.classList.contains("show")){
+    setTimeout(()=>openProfile(c.id),80);
+  }
+  return true;
+}
+
 function setAuthMessage(id,text,type=""){
   const el=$(id);
   if(!el)return;
@@ -294,7 +390,8 @@ function cardHTML(c){
 
         <div class="card-actions card-actions-v12">
           <button class="profile-btn" onclick="openProfile('${c.id}')">Xem hồ sơ</button>
-          <button class="story-btn" onclick="openReader('${c.id}','background')" aria-label="Đọc truyện">↗</button>
+          <button class="story-btn card-icon-btn-v14" onclick="openReader('${c.id}','background')" aria-label="Đọc truyện" title="Đọc truyện">📖</button>
+          <button class="share-btn-v14 card-icon-btn-v14" onclick="shareCharacter('${c.id}')" aria-label="Chia sẻ ${escapeHTML(c.name)}" title="Chia sẻ nhân vật">↗</button>
         </div>
       </div>
     </article>
@@ -1266,6 +1363,7 @@ async function loadDatabaseCharacters(){
   }
 
   renderAll();
+  tryOpenSharedCharacter();
 }
 
 /* =========================================================
@@ -1712,9 +1810,10 @@ initSupabase();
    ========================================================= */
 
 function initWelcome(){
+  const hasSharedCharacter=!!sharedCharacterKeyFromUrl();
   const hidden = localStorage.getItem("bongHideWelcome") === "1";
 
-  if(hidden){
+  if(hasSharedCharacter || hidden){
     $("welcomeOverlay")?.classList.add("hidden");
   }else{
     $("welcomeOverlay")?.classList.remove("hidden");
@@ -1773,6 +1872,7 @@ function randomCharacter(){
 }
 
 initWelcome();
+tryOpenSharedCharacter();
 
 
 /* =========================================================

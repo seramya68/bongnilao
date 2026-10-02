@@ -2246,3 +2246,36 @@ button{cursor:pointer}
   .event-action-row-v13{grid-template-columns:1fr}
   .card-hook-v12{font-size:8.3px;line-height:1.55}
 }
+
+
+/* =========================================================
+   V14 — DIRECT CHARACTER SHARE LINKS
+   ========================================================= */
+.card-actions-v12{
+  grid-template-columns:minmax(0,1fr) 38px 38px;
+}
+.card-icon-btn-v14{
+  display:grid;
+  place-items:center;
+  padding:0!important;
+  font-size:13px!important;
+}
+.share-btn-v14{
+  border:0;
+  background:#f7e7ed;
+  color:var(--wine);
+}
+.share-btn-v14:hover{
+  background:#efd3dd;
+  transform:translateY(-1px);
+}
+.profile-share-btn-v14{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+@media(max-width:700px){
+  .card-actions-v12{grid-template-columns:minmax(0,1fr) 34px 34px}
+  .card-icon-btn-v14{font-size:11px!important}
+}
