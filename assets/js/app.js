@@ -477,7 +477,8 @@ function openProfile(id){
   $("profileMain").src=imgPath(c,"profile.jpg");
   $("profileMain").style.display="block";
 
-  $("galleryGrid").innerHTML=[1,2,3,4].map(n=>`
+  const galleryCount=Math.max(0,Math.min(12,Number(c.galleryCount || 4)));
+  $("galleryGrid").innerHTML=Array.from({length:galleryCount},(_,i)=>i+1).map(n=>`
     <img
       class="gallery-img"
       src="${imgPath(c,`${n}.jpg`)}"
