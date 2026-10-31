@@ -1,0 +1,25 @@
+NHÀ CỦA BÔNG — KANG DO-HYUN (SEOUL) · 15 EVENTS + 17 NPCS
+
+BẢN NÀY ĐÃ GHÉP VÀO ĐÚNG WEB CŨ:
+- Kang Do-hyun, 25 tuổi, diễn viên, Seoul (Hàn Quốc).
+- Background Story và Opening Scene đầy đủ từ bản người dùng gửi.
+- 15 Starter Prompts theo đúng nội dung, có chọn mood / bốc ngẫu nhiên / copy.
+- 17 NPC với tên, tuổi, vai trò, tính cách / chức năng.
+- Ảnh đại diện assets/images/do-huyn/profile.jpg đã được thêm từ file JPG cung cấp.
+- Hiển thị 7 ảnh gallery: 1.jpg, 2.jpg, ..., 7.jpg (các file này bạn đã lưu trên máy).
+- Nhạc để ở assets/music/do-huyn.mp3 khi tìm được (hiện chưa có file nhạc).
+- Giữ nguyên các nhân vật cũ; không sửa app.js, stories.js hay CSS.
+
+CÀI VÀO D:\BNL:
+1. Giải nén ZIP, SAO CHÉP index.html và thư mục assets từ ZIP vào D:\BNL,
+   chọn Merge/Hợp nhất thư mục, chỉ thay file trùng tên (index.html).
+2. Đảm bảo D:\BNL\assets\images\do-huyn chứa đủ profile.jpg và 1.jpg → 7.jpg.
+3. Không xóa các ảnh và các tệp khác đang có trong D:\BNL.
+4. Mở index.html xem thử: bấm Kang Do-hyun → NPC / Events → chọn mood hoặc Bốc ngẫu nhiên → Copy.
+5. Commit những thay đổi sau lên repository GitHub seramya68/bongnilao.
+
+Nếu index.html trên GitHub MỚI HƠN bản trong ZIP, đừng ghi đè:
+Chỉ cần thêm <script src="assets/js/do-huyn-data.js"></script>
+ngay sau khang-data.js và trước app.js.
+
+LƯU Ý: Chưa có API Github đã được kết nối với phiên này, nên ZIP CHƯA tự được đưa lên GitHub.

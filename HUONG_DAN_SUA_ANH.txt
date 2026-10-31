@@ -1,0 +1,22 @@
+NHÀ CỦA BÔNG — KANG DO-HYUN · SỬA LỖI AVATAR (KHÔNG GHI ĐÈ ẢNH)
+
+LỖI Ở ZIP CŨ: ĐÃ CHÉP NHẦM ẢNH JAMES VÀO assets/images/do-huyn/profile.jpg.
+ZIP NÀY CỐ TÌNH KHÔNG CHỨA FILE ẢNH ĐỂ KHÔNG GHI ĐÈ ẢNH TRÊN MÁY BẠN.
+
+BƯỚC 1 — KHÔI PHỤC ĐÚNG ẢNH DO-HYUN:
+- Dùng ảnh gốc Do-hyun mà bạn đã chọn (ảnh profile trong thư mục trước khi giải nén ZIP cũ).
+- Lưu/đổi tên ảnh đó thành D:\BNL\assets\images\do-huyn\profile.jpg
+- Nếu JPG đó đã bị ZIP cũ ghi đè, hãy lấy lại từ bản sao ban đầu, thùng rác, thư mục tải xuống hoặc lịch sử phiên bản GitHub (nếu đã có).
+- KHÔNG dùng ảnh James (anh áo trắng đeo kính trên thuyền).
+
+BƯỚC 2 — CẬP NHẬT WEBSITE (CHỈ NẾU CHƯA CÀI BẢN MỚI):
+- Giải nén ZIP này; hợp nhất index.html và assets/js/do-huyn-data.js vào D:\BNL.
+- Giữ nguyên thư mục ảnh 1.jpg đến 7.jpg ở assets/images/do-huyn.
+- Không có MP3 trong ZIP; khi có nhạc, lưu assets/music/do-huyn.mp3.
+
+BƯỚC 3 — KIỂM TRA:
+- Mở D:\BNL\index.html -> xem thẻ Kang Do-hyun.
+- Nếu vẫn là ảnh James: mở trực tiếp D:\BNL\assets\images\do-huyn\profile.jpg xem nó còn là ảnh James hay không; thay lại đúng ảnh.
+- Nếu online GitHub Pages: commit/upload JPG đúng lên assets/images/do-huyn/profile.jpg rồi Ctrl+F5 để làm mới.
+
+ĐÃ GIỮ: 15 events, 17 NPC, background + opening, Seoul, galleryCount=7, music=do-huyn.mp3.

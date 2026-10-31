@@ -1,0 +1,2 @@
+Khi tìm được nhạc, đặt file thật tên do-huyn.mp3 ở assets/music/do-huyn.mp3.
+Chưa có file nhạc thì trang vẫn hiển thị nhân vật nhưng không phát nhạc được.
