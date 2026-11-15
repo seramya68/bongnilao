@@ -1,0 +1,1 @@
+Khi có nhạc, đặt quan.mp3 vào assets/music/; chưa cần file giả.
