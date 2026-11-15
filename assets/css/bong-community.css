@@ -1,0 +1,49 @@
+/* BÔNG COMMUNITY — giữ tông hồng đỏ của website */
+.bong-news-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;flex:none;border-radius:16px;border:1px solid #ead5dd;background:#fff7fa;color:#9b274b;font-size:20px;cursor:pointer;transition:transform .15s}
+.bong-news-bell:hover{transform:translateY(-1px);background:#fcebf1}
+.bong-news-badge{position:absolute;right:-4px;top:-6px;background:#9c274b;color:white;font:700 10px/1 'Be Vietnam Pro',sans-serif;border-radius:30px;min-width:19px;height:19px;display:grid;place-items:center;padding:0 3px;box-shadow:0 2px 6px #54162b40}
+.bong-news-badge[hidden]{display:none!important}
+.bong-news-overlay{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:#2a0b1ab8;backdrop-filter:blur(8px);padding:18px}
+.bong-news-overlay.show{display:flex}
+.bong-news-modal{width:min(540px,100%);max-height:min(85vh,750px);display:flex;flex-direction:column;background:#fffafc;border:1px solid #f4dce5;border-radius:26px;box-shadow:0 22px 85px #22061366;overflow:hidden;font-family:'Be Vietnam Pro',sans-serif}
+.bong-news-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 24px 16px;border-bottom:1px solid #f2e2e8}
+.bong-news-head small{font-size:10px;letter-spacing:.17em;color:#a57887;font-weight:800}
+.bong-news-head h3{font-size:22px;line-height:1.3;color:#7e2341;margin:5px 0 0}
+.bong-news-close{border:0;background:#f8e8ee;color:#85435b;border-radius:50%;font-size:25px;width:36px;height:36px;cursor:pointer;flex:none}
+.bong-news-list{overflow:auto;padding:18px 22px;display:grid;gap:12px}
+.bong-news-item{border:1px solid #efdce4;border-radius:17px;padding:16px;background:white;overflow-wrap:anywhere}
+.bong-news-item.pinned{background:#fff1f6;border-color:#edc6d5}
+.bong-news-meta{font-size:11px;color:#a06b80;margin-bottom:6px;font-weight:700}
+.bong-news-item h4{margin:0 0 8px;font-size:15px;color:#7b2340;line-height:1.45}
+.bong-news-item p{font-size:13px;line-height:1.85;color:#55404a;white-space:pre-wrap;margin:0}
+.bong-news-item a{display:inline-block;margin-top:11px;color:#a32750;font-weight:800;text-decoration:none;font-size:12px}
+.bong-news-empty{color:#9c7584;font-size:13px;text-align:center;padding:20px 6px}
+.bong-news-foot{border-top:1px solid #f2e2e8;padding:15px 22px 20px}
+.bong-news-done{border:0;background:#992849;color:#fff;border-radius:13px;padding:12px 20px;font-weight:800;font-family:inherit;width:100%;cursor:pointer}
+.bong-news-open{overflow:hidden}
+.bong-review-like{display:inline-flex;align-items:center;gap:4px;margin-top:12px;padding:8px 12px;border:1px solid #eed1dd;background:#fff5f8;color:#a13b5d;border-radius:999px;font:700 12px 'Be Vietnam Pro',sans-serif;cursor:pointer}
+.bong-review-like.liked{background:#9d274c;color:white;border-color:#9d274c}
+.bong-admin-news-form{border:1px solid #f1dfe6;background:#fff8fb;border-radius:16px;padding:17px;display:grid;gap:12px;margin-bottom:22px}
+.bong-admin-news-form label{font-size:12px;font-weight:800;color:#794459;display:grid;gap:7px}
+.bong-admin-news-form input:not([type=checkbox]),.bong-admin-news-form textarea{width:100%;padding:11px 12px;border:1px solid #e7cdd8;border-radius:11px;background:white;color:#422c35;font:400 13px 'Be Vietnam Pro',sans-serif;box-sizing:border-box}
+.bong-admin-news-pin{display:flex!important;align-items:center;gap:8px!important}
+.bong-admin-news-pin input{accent-color:#a12b50}
+.bong-admin-news-actions{display:flex;gap:9px;flex-wrap:wrap}
+.bong-admin-news-actions button{border:0;border-radius:11px;padding:11px 16px;background:#9d274c;color:#fff;font-weight:800;cursor:pointer}
+.bong-admin-news-actions button.secondary{background:#f0e1e8;color:#863d59}
+.bong-admin-news-actions button[hidden]{display:none}
+.bong-admin-news-message{margin:0;color:#8d4862;font-size:12px}
+.bong-admin-news-list{display:grid;gap:10px}
+.bong-admin-news-row{display:flex;justify-content:space-between;gap:12px;border:1px solid #f0e1e7;border-radius:14px;padding:14px;background:white}
+.bong-admin-news-row strong{color:#7e2748;font-size:13px}
+.bong-admin-news-row small{display:block;margin-top:4px;color:#9a7483;font-size:10px}
+.bong-admin-news-row p{margin:8px 0 0;white-space:pre-wrap;font-size:12px;color:#5a4a51;line-height:1.6}
+.bong-admin-news-row-actions{display:flex;gap:6px;align-items:start;flex:none}
+.bong-admin-news-row-actions button{border:1px solid #efdce4;background:#fff5f8;color:#8c3453;border-radius:9px;padding:7px 9px;cursor:pointer;font-size:11px}
+@media(max-width:600px){.bong-news-head{padding:18px}.bong-news-list{padding:12px}.bong-news-foot{padding:12px 18px 18px}.bong-admin-news-row{flex-direction:column}.bong-news-head h3{font-size:19px}}
+
+/* Bổ sung cho máy nhỏ và khả năng cuộn trong hộp thoại */
+.bong-news-modal{min-height:0}
+.bong-news-list{min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.bong-news-modal button:focus-visible,.bong-news-bell:focus-visible,.bong-review-like:focus-visible{outline:3px solid #cf7794;outline-offset:2px}
+@media (max-width:520px){.bong-news-overlay{padding:10px}.bong-news-modal{max-height:calc(100dvh - 20px);border-radius:20px}}

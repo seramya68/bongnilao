@@ -2279,3 +2279,106 @@ button{cursor:pointer}
   .card-actions-v12{grid-template-columns:minmax(0,1fr) 34px 34px}
   .card-icon-btn-v14{font-size:11px!important}
 }
+
+
+/* ===========================================================
+   NHA CUA BONG — ADMIN SCROLL FIX
+   Fix: Admin Review/Hop thu/Ho so char lists were clipped because
+   .admin-modal had overflow:hidden without an internal scroll area.
+   This patch only targets #adminOverlay.
+   =========================================================== */
+#adminOverlay .admin-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(1240px, 95vw);
+  height: min(88vh, 860px);
+  height: min(88dvh, 860px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+}
+
+#adminOverlay .modal-head {
+  flex: 0 0 auto;
+  position: relative;
+  top: auto;
+}
+
+#adminOverlay .admin-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#adminOverlay .admin-nav {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+#adminOverlay .admin-content {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+#adminOverlay .admin-content::-webkit-scrollbar,
+#adminOverlay .admin-nav::-webkit-scrollbar {
+  width: 9px;
+}
+
+#adminOverlay .admin-content::-webkit-scrollbar-thumb,
+#adminOverlay .admin-nav::-webkit-scrollbar-thumb {
+  background: #d6b2bf;
+  border: 2px solid #fff9fb;
+  border-radius: 20px;
+}
+
+#adminOverlay .admin-content::-webkit-scrollbar-track {
+  background: #fff9fb;
+}
+
+@media (max-width: 860px) {
+  #adminOverlay .admin-modal {
+    width: 100%;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    border-radius: 18px;
+  }
+
+  #adminOverlay .admin-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  #adminOverlay .admin-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px;
+    align-items: center;
+    scrollbar-width: thin;
+  }
+
+  #adminOverlay .admin-nav-btn,
+  #adminOverlay .admin-nav-btn.danger {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    white-space: nowrap;
+    grid-column: auto;
+  }
+
+  #adminOverlay .admin-content {
+    padding: 14px;
+  }
+}

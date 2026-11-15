@@ -477,12 +477,16 @@ function openProfile(id){
   $("profileMain").src=imgPath(c,"profile.jpg");
   $("profileMain").style.display="block";
 
-  const galleryCount=Math.max(0,Math.min(12,Number(c.galleryCount || 4)));
-  $("galleryGrid").innerHTML=Array.from({length:galleryCount},(_,i)=>i+1).map(n=>`
+  // Dùng đúng tên ảnh của từng nhân vật; hỗ trợ cả .jpg, .png, .webp.
+  const galleryFiles = Array.isArray(c.galleryFiles) && c.galleryFiles.length
+    ? c.galleryFiles.slice(0, 20)
+    : Array.from({length:Math.max(0,Math.min(20,Number(c.galleryCount || 4)))},(_,i)=>`${i+1}.jpg`);
+  $("galleryGrid").innerHTML=galleryFiles.map((file,index)=>`
     <img
       class="gallery-img"
-      src="${imgPath(c,`${n}.jpg`)}"
-      alt="${escapeHTML(c.name)} ${n}"
+      src="${imgPath(c,encodeURIComponent(String(file)))}"
+      alt="${escapeHTML(c.name)} ${index+1}"
+      loading="lazy"
       onclick="openLightbox(this.src)"
       onerror="this.style.display='none'"
     >
@@ -2274,11 +2278,13 @@ async function submitReview(){
 
   setAuthMessage("reviewMessage","Đang lưu review...");
 
-  const {error}=await sb
-    .from("character_reviews")
-    .upsert(payload,{
-      onConflict:"user_id,character_key"
-    });
+  // Khi sửa review, UPDATE đúng các trường của người chơi để bảo toàn phản hồi của Bông.
+  // Không dùng upsert vì giá trị mặc định lúc INSERT có thể ghi đè admin_reply.
+  const query = myCurrentReview?.id
+    ? sb.from("character_reviews").update(payload)
+        .eq("id",myCurrentReview.id).eq("user_id",authSession.user.id)
+    : sb.from("character_reviews").insert(payload);
+  const {error}=await query;
 
   if(error){
     console.error("review upsert",error);
