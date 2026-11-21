@@ -53,7 +53,7 @@
   }
   function unread() { return state.news.filter(n => !state.seen.has(n.id)); }
   function updateBadge() {
-    const n = unread().length;
+    const n = unread().length + (typeof bongInboxUnread==='function' ? bongInboxUnread() : 0);
     const badge = get('bongNewsBadge');
     if (badge) { badge.textContent = n > 9 ? '9+' : String(n); badge.hidden = n === 0; }
     const btn = get('bongNewsBell');
@@ -74,8 +74,10 @@
     const rows = history ? state.news : unread();
     const overlay = get('bongNewsOverlay');
     get('bongNewsTitle').textContent = history ? 'Tin từ Bông ♡' : 'Bông có tin mới nè ♡';
-    get('bongNewsList').innerHTML = rows.length ? rows.map(cardHTML).join('')
-      : '<p class="bong-news-empty">Chưa có thông báo nào hết á ♡</p>';
+    const inboxCount=history && typeof bongInboxUnread==='function' ? bongInboxUnread() : 0;
+    const inboxCard=inboxCount ? `<article class="bong-news-item"><h4>💬 Bông đã nhắn cho bạn ♡</h4><p>Bạn có ${inboxCount} tin nhắn chưa đọc.</p><button type="button" class="inbox-news-open" id="bongNewsOpenInbox">Mở hộp thư</button></article>` : '';
+    get('bongNewsList').innerHTML = inboxCard + (rows.length ? rows.map(cardHTML).join('') : inboxCard ? '' : '<p class="bong-news-empty">Chưa có thông báo nào hết á ♡</p>');
+    get('bongNewsOpenInbox')?.addEventListener('click',()=>{closeNews();if(typeof toggleChat==='function'&&!get('chat')?.classList.contains('show'))toggleChat();});
     overlay.classList.add('show');
     overlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('bong-news-open');
@@ -295,6 +297,8 @@
   }
   function initWhenReady() {
     installUI();
+    window.addEventListener('bong:inbox-unread',updateBadge);
+    updateBadge();
     let attempts=0;
     const timer=setInterval(async()=>{
       attempts++;

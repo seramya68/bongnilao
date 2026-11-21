@@ -10,7 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=20261116-full1">
-  <link rel="stylesheet" href="assets/css/bong-community.css?v=20261116-full1">
+  <link rel="stylesheet" href="assets/css/bong-community.css?v=20261122-inbox2">
+  <link rel="stylesheet" href="assets/css/bong-inbox.css?v=20261122-inbox2">
 </head>
 
 <body>
@@ -92,7 +93,7 @@
       <button onclick="scrollToCategory('traiTay')">♡ <span>Nhà ngoại</span></button>
       <button onclick="scrollToCategory('traiViet')">♡ <span>Nhà nội</span></button>
       <button onclick="showSaved()">☆ <span>Đã lưu</span></button>
-      <button onclick="toggleChat()">💬 <span>Bông</span></button>
+      <button class="bong-inbox-nav" onclick="toggleChat()">💬 <span>Bông</span><span class="inbox-nav-badge" id="bongInboxBadge" hidden>0</span></button>
     </nav>
 
     
@@ -529,7 +530,7 @@
   </div>
 
   <div class="chat-input">
-    <input id="chatInput" placeholder="Nhắn cho Bông...">
+    <input id="chatInput" maxlength="5000" autocomplete="off" placeholder="Nhắn cho Bông..." aria-label="Nhắn cho Bông">
     <button onclick="sendChat()">Gửi</button>
   </div>
 </div>
@@ -611,7 +612,7 @@
 
     <div class="admin-layout">
       <aside class="admin-nav">
-        <button class="admin-nav-btn active" data-admin="messages" onclick="switchAdminTab('messages',this)">💬 Hộp thư</button>
+        <button class="admin-nav-btn active" data-admin="messages" onclick="switchAdminTab('messages',this)">💬 Hộp thư <span id="bongAdminInboxBadge" class="inbox-count" hidden>0</span></button>
         <button class="admin-nav-btn" data-admin="characters" onclick="switchAdminTab('characters',this)">🪪 Hồ sơ char</button>
         <button class="admin-nav-btn" data-admin="reviews" onclick="switchAdminTab('reviews',this)">♥ Review</button>
         <button class="admin-nav-btn" data-admin="links" onclick="switchAdminTab('links',this)">🔔 Link & mail</button>
@@ -623,8 +624,8 @@
         <div id="adminMessagesPanel" class="admin-panel-view">
           <div class="admin-section-head">
             <div>
-              <h2>Tin nhắn gửi Bông</h2>
-              <p>Tin nhắn được lưu trong Supabase.</p>
+              <h2>Bông Inbox ♡</h2>
+              <p>Hội thoại riêng · Chọn người chơi để đọc và trả lời.</p>
             </div>
             <span class="admin-count" id="adminMessageCount">0</span>
           </div>
@@ -784,8 +785,8 @@
 <script src="assets/js/do-huyn-data.js?v=20261116-full1"></script>
 <script src="assets/js/quan-data.js?v=20261116-full1"></script>
 <script src="assets/js/ben-data.js?v=20261122-ben2"></script>
-<script src="assets/js/app.js?v=20261116-full1"></script>
+<script src="assets/js/app.js?v=20261122-inbox2"></script>
 
-<script src="assets/js/bong-community.js?v=20261116-full1"></script>
+<script src="assets/js/bong-community.js?v=20261122-inbox2"></script>
 </body>
 </html>

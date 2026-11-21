@@ -1,0 +1,15 @@
+NHÀ CỦA BÔNG — COMMUNITY V2 / BÔNG INBOX
+Bản vá dựa trên Full Community v1.1 + Ben V2.
+
+1. Sao lưu D:\BNL. Giải nén bản vá; hợp nhất các thư mục assets và supabase, thay đúng 5 file đi kèm. Không xóa ảnh, nhạc, dữ liệu nhân vật hay các file khác. Nếu đã sửa index/app/community sau bản Ben V2, so sánh thay đổi trước khi ghi đè.
+2. Supabase > BNL > SQL Editor > Database (KHÔNG phải Logs). Mở file supabase/02_BNL_Inbox_Read_Status.sql, copy toàn bộ và Run một lần. SQL giữ bảng messages, dữ liệu và chính sách Admin hiện có; chỉ bổ sung policy/trigger đánh dấu đã đọc và index. Không cần chạy lại SQL Community trước đó.
+3. Terminal VS Code tại D:\BNL:
+   git add index.html assets/js/app.js assets/js/bong-community.js assets/css/bong-inbox.css supabase/02_BNL_Inbox_Read_Status.sql
+   git diff --cached --stat
+   git commit -m "Add Bong Inbox two-way messaging"
+   git push
+   Nếu có thay đổi khác đã stage, xem lại trước khi commit.
+4. Sau khi GitHub Pages triển khai, Ctrl+F5. Bông Admin > Hộp thư, chọn người chơi rồi gửi. Người chơi mở nút Bông hoặc chuông thông báo để xem tin mới. Tin mới tự kiểm tra khoảng 15 giây khi trang đang hiển thị; không có email, không cần Realtime.
+5. Thử bằng tài khoản người chơi khác (không phải Admin). Gửi một tin, Bông mở hội thoại và trả lời, người chơi kiểm tra chuông, mở tin và kiểm tra badge. Tin nhắn cũ vẫn lấy từ bảng messages.
+
+Kiểm tra đã thực hiện: Node syntax, mô phỏng giao diện Chromium với dữ liệu giả lập (Admin nhận/gửi, user nhận/gửi, tìm tên, badge, read, mobile, escape HTML). Chưa chạy SQL trên DB thật, chưa push GitHub. Thử chức năng thật sau khi cài.

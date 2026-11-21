@@ -1040,24 +1040,22 @@ async function initSupabase(){
     await loadChatThread();
   }
 
+  await inboxRefreshBadge();
   await loadDatabaseCharacters();
   await loadCharacterLinks();
   await loadNotificationCounts();
   await loadReviewStats();
 
-  sb.auth.onAuthStateChange(async (_event,session)=>{
+  sb.auth.onAuthStateChange((_event,session)=>{
+    const previous=authSession?.user?.id;
     authSession=session;
-
-    if(session){
-      await loadCurrentProfile();
-      await loadChatThread();
-    }else{
-      currentProfile=null;
-      clearChatThreadUI();
-    }
-
-    updateAuthButton();
-    await loadReviewStats();
+    if(previous!==session?.user?.id){currentProfile=null;inboxReset();}
+    setTimeout(async()=>{
+      if(session?.user?.id!==authSession?.user?.id)return;
+      if(session){await loadCurrentProfile();if(inboxChatOpen())await loadChatThread();}
+      else{currentProfile=null;clearChatThreadUI();}
+      updateAuthButton();await inboxRefreshBadge();await loadReviewStats();
+    },0);
   });
 
   updateAuthButton();
@@ -1242,6 +1240,7 @@ async function logoutSupabase(){
 
   authSession=null;
   currentProfile=null;
+  inboxReset();
   updateAuthButton();
   showToast("Đã đăng xuất ♡");
 }
@@ -1375,95 +1374,111 @@ async function loadDatabaseCharacters(){
    CHAT — SUPABASE
    ========================================================= */
 
+// Bông Inbox v2 — private user/admin conversations.
+const inboxState = { selected:null, rows:[], profiles:new Map(), search:"", onlyUnread:false,
+  owner:null, lastUnread:null, busy:false, threadBusy:false, sendBusy:false, adminSendBusy:false,
+  chatSignature:"", adminSignature:"", mobileThread:false, unread:0 };
+function inboxUserId(){return authSession?.user?.id || null;}
+function inboxActive(){return isAdminSession() && $("adminOverlay")?.classList.contains("show") && !$("adminMessagesPanel")?.classList.contains("hidden");}
+function inboxChatOpen(){return $("chat")?.classList.contains("show");}
+function inboxDate(value){const d=new Date(value);return Number.isNaN(+d)?"":d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
+function inboxReset(){
+  if(inboxState.owner===inboxUserId())return;
+  Object.assign(inboxState,{owner:inboxUserId(),selected:null,rows:[],profiles:new Map(),lastUnread:null,unread:0,chatSignature:"",adminSignature:"",mobileThread:false,search:"",onlyUnread:false});
+  if($("adminMessagesList"))$("adminMessagesList").replaceChildren();
+  if($("chatBody"))$("chatBody").innerHTML='<div class="bubble admin">Bông đây 🌷 Có gì nhắn tui nha.</div>';
+  if($("chatInput"))$("chatInput").value="";
+  inboxPaintBadges();
+}
+function inboxPaintBadges(){
+  const n=inboxState.unread;
+  const badge=$("bongInboxBadge");if(badge){badge.textContent=n>99?"99+":String(n);badge.hidden=!n;}
+  const adminBadge=$("bongAdminInboxBadge");if(adminBadge){adminBadge.textContent=n>99?"99+":String(n);adminBadge.hidden=!n||!isAdminSession();}
+  window.dispatchEvent(new CustomEvent("bong:inbox-unread",{detail:{count:isAdminSession()?0:n}}));
+}
+function bongInboxUnread(){return isAdminSession()?0:inboxState.unread;}
+async function inboxRefreshBadge(){
+  inboxReset();const uid=inboxUserId();if(!sb||!uid)return;
+  const admin=isAdminSession();let query=sb.from("messages").select("id",{count:"exact",head:true}).eq("sender_role",admin?"user":"admin").eq(admin?"read_by_admin":"read_by_user",false);
+  if(!admin)query=query.eq("user_id",uid);
+  const {count,error}=await query;
+  if(error||uid!==inboxUserId())return;
+  inboxState.unread=count||0;
+  if(!admin && inboxState.lastUnread!==null && inboxState.unread>inboxState.lastUnread && !inboxChatOpen())showToast("Bông vừa nhắn tin cho bạn ♡");
+  inboxState.lastUnread=inboxState.unread;inboxPaintBadges();
+}
+async function inboxAllRows(uid=null){
+  const out=[];const size=200;
+  for(let pos=0;;pos+=size){
+    let q=sb.from("messages").select("id,user_id,sender_role,body,created_at,read_by_admin,read_by_user").order("created_at",{ascending:true}).order("id",{ascending:true}).range(pos,pos+size-1);
+    if(uid)q=q.eq("user_id",uid);
+    const {data,error}=await q;if(error)throw error;
+    out.push(...(data||[]));if(!data||data.length<size)break;
+  }
+  return out;
+}
+function inboxThreadHTML(rows,admin=false){
+  if(!rows.length)return '<div class="inbox-empty">'+(admin?'Chưa có tin nhắn.':'Bông đây 🌷 Có gì nhắn tui nha.')+'</div>';
+  return rows.map(m=>{
+    const mine=m.sender_role===(admin?"admin":"user");
+    const status=mine?(admin?(m.read_by_user?" · Đã xem":" · Đã gửi"):(m.read_by_admin?" · Bông đã xem":" · Đã gửi")):"";
+    return `<div class="inbox-line ${mine?'mine':'theirs'}"><div class="inbox-bubble"><div class="inbox-body-text">${escapeHTML(m.body)}</div><small>${escapeHTML(inboxDate(m.created_at)+status)}</small></div>${admin?`<button type="button" class="inbox-delete" data-delete="${escapeHTML(m.id)}" title="Xóa tin" aria-label="Xóa tin nhắn">×</button>`:''}</div>`;
+  }).join("");
+}
+function inboxUpdateThread(box,rows,admin=false,force=false){
+  const key=admin?"adminSignature":"chatSignature";
+  const sig=JSON.stringify(rows.map(m=>[m.id,m.body,m.read_by_admin,m.read_by_user]));
+  if(!force&&inboxState[key]===sig)return;
+  const nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;
+  const prev=box.scrollTop;
+  box.innerHTML=inboxThreadHTML(rows,admin);inboxState[key]=sig;
+  box.scrollTop=nearBottom||force?box.scrollHeight:prev;
+}
+async function inboxMarkRead(rows,admin,uid){
+  const field=admin?"read_by_admin":"read_by_user";
+  const ids=rows.filter(m=>m.sender_role===(admin?"user":"admin")&&!m[field]).map(m=>m.id);
+  for(let i=0;i<ids.length;i+=100){
+    if(inboxUserId()!==uid)return;
+    const {error}=await sb.from("messages").update({[field]:true}).in("id",ids.slice(i,i+100)).eq("sender_role",admin?"user":"admin");
+    if(error){console.warn("Inbox read status",error.message);return;}
+  }
+}
 function toggleChat(){
+  if(isAdminSession()){
+    $("chat")?.classList.remove("show");
+    if(!$("adminOverlay")?.classList.contains("show"))void openAdmin();
+    switchAdminTab("messages",document.querySelector('[data-admin="messages"]'));
+    document.getElementById("adminBongnewsPanel")?.classList.add("hidden");return;
+  }
   $("chat")?.classList.toggle("show");
-
-  if($("chat")?.classList.contains("show")){
-    if(!authSession){
-      $("chatBody").innerHTML=
-        `<div class="bubble admin">Đăng nhập trước rồi nhắn Bông nha 🌷</div>`;
-    }else{
-      loadChatThread();
-    }
+  if(inboxChatOpen()){
+    if(!authSession){$("chatBody").innerHTML='<div class="inbox-empty">Đăng nhập trước rồi nhắn Bông nha 🌷</div>';return;}
+    void loadChatThread(true);
   }
 }
-
-function clearChatThreadUI(){
-  if($("chatBody")){
-    $("chatBody").innerHTML=
-      `<div class="bubble admin">Bông đây 🌷 Có gì nhắn tui nha.</div>`;
-  }
+function clearChatThreadUI(){inboxReset();if($("chatBody"))$("chatBody").innerHTML='<div class="bubble admin">Bông đây 🌷 Có gì nhắn tui nha.</div>';}
+async function loadChatThread(force=false){
+  inboxReset();const uid=inboxUserId();const box=$("chatBody");if(!sb||!uid||!box||isAdminSession()||inboxState.threadBusy)return;
+  inboxState.threadBusy=true;
+  try{
+    const rows=await inboxAllRows(uid);if(uid!==inboxUserId())return;
+    inboxUpdateThread(box,rows,false,force);
+    if(inboxChatOpen()&&!document.hidden){await inboxMarkRead(rows,false,uid);}
+    await inboxRefreshBadge();
+  }catch(error){console.error("Inbox",error);if(uid===inboxUserId()&&force)box.textContent="Không tải được hội thoại. Mở lại hộp thư để thử lại.";}
+  finally{inboxState.threadBusy=false;}
 }
-
-async function loadChatThread(){
-  if(!sb || !authSession?.user || !$("chatBody")){
-    return;
-  }
-
-  const {data,error}=await sb
-    .from("messages")
-    .select("id,sender_role,body,created_at")
-    .eq("user_id",authSession.user.id)
-    .order("created_at",{ascending:true});
-
-  if(error){
-    console.error("chat fetch",error);
-    return;
-  }
-
-  const box=$("chatBody");
-
-  if(!data?.length){
-    box.innerHTML=
-      `<div class="bubble admin">Bông đây 🌷 Có gì nhắn tui nha.</div>`;
-    return;
-  }
-
-  box.innerHTML=data.map(m=>`
-    <div class="bubble ${m.sender_role==="admin" ? "admin" : "me"}">
-      ${escapeHTML(m.body)}
-    </div>
-  `).join("");
-
-  box.scrollTop=box.scrollHeight;
-}
-
 async function sendChat(){
-  const input=$("chatInput");
-  const value=input.value.trim();
-
-  if(!value)return;
-
-  if(!backendReady || !authSession?.user){
-    showToast("Đăng nhập trước rồi nhắn Bông nha ♡");
-    openAuth();
-    return;
-  }
-
-  input.disabled=true;
-
-  const {error}=await sb
-    .from("messages")
-    .insert({
-      user_id:authSession.user.id,
-      sender_role:"user",
-      body:value
-    });
-
-  input.disabled=false;
-
-  if(error){
-    console.error("message insert",error);
-    showToast("Gửi tin nhắn chưa được, thử lại nha.");
-    return;
-  }
-
-  input.value="";
-  await loadChatThread();
-
-  if(currentProfile?.role==="admin"){
-    await renderAdminMessages();
-  }
+  const input=$("chatInput");const value=input?.value.trim();const uid=inboxUserId();
+  if(!value||inboxState.sendBusy)return;
+  if(!backendReady||!uid){showToast("Đăng nhập trước rồi nhắn Bông nha ♡");openAuth();return;}
+  if(value.length>5000)return showToast("Tin nhắn tối đa 5.000 ký tự nha.");
+  inboxState.sendBusy=true;input.disabled=true;
+  try{
+    const {error}=await sb.from("messages").insert({user_id:uid,sender_role:"user",body:value});if(error)throw error;
+    if(uid!==inboxUserId())return;input.value="";await loadChatThread(true);
+  }catch(error){showToast("Chưa gửi được: "+error.message);}
+  finally{input.disabled=false;inboxState.sendBusy=false;}
 }
 
 /* =========================================================
@@ -1505,94 +1520,81 @@ function switchAdminTab(tab,button){
   if(tab==="links")renderAdminLinks();
 }
 
+function inboxAdminShell(){
+  const list=$("adminMessagesList");if(!list||$("inboxAdminThreads"))return;
+  list.innerHTML=`<div class="inbox-admin-layout" id="inboxAdminLayout">
+    <aside class="inbox-sidebar"><div class="inbox-search"><input id="inboxSearch" placeholder="Tìm tên người chơi…" autocomplete="off" aria-label="Tìm hội thoại"><label><input type="checkbox" id="inboxOnlyUnread"> Chưa đọc</label></div><div id="inboxAdminThreads" class="inbox-threads"></div></aside>
+    <section class="inbox-conversation"><header class="inbox-thread-head"><button type="button" id="inboxBack" class="inbox-back">‹ Hộp thư</button><div><strong id="inboxAdminName">Chọn một hội thoại</strong><small id="inboxAdminUser"></small></div></header><div id="inboxAdminBody" class="inbox-thread-body" role="log" aria-live="polite"></div><form id="inboxAdminForm" class="inbox-composer"><textarea id="inboxAdminInput" placeholder="Nhắn lại cho người chơi…" maxlength="5000" rows="2" aria-label="Nội dung phản hồi" disabled></textarea><button id="inboxAdminSend" type="submit" disabled>Gửi ♡</button></form><p id="inboxAdminError" role="status" class="inbox-error"></p></section></div>`;
+  $("inboxSearch").value=inboxState.search;$("inboxOnlyUnread").checked=inboxState.onlyUnread;
+  $("inboxSearch").addEventListener("input",e=>{inboxState.search=e.target.value;inboxRenderList();});
+  $("inboxOnlyUnread").addEventListener("change",e=>{inboxState.onlyUnread=e.target.checked;inboxRenderList();});
+  $("inboxAdminThreads").addEventListener("click",e=>{const b=e.target.closest("[data-thread]");if(b)void inboxSelect(b.dataset.thread);});
+  $("inboxBack").addEventListener("click",()=>{inboxState.mobileThread=false;$("inboxAdminLayout").classList.remove("thread-open");});
+  $("inboxAdminForm").addEventListener("submit",e=>{e.preventDefault();void inboxSendAdmin();});
+  $("inboxAdminInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();void inboxSendAdmin();}});
+  $("inboxAdminBody").addEventListener("click",e=>{const b=e.target.closest("[data-delete]");if(b)void inboxDelete(b.dataset.delete);});
+}
+function inboxGroups(){
+  const grouped=new Map();for(const m of inboxState.rows){if(!grouped.has(m.user_id))grouped.set(m.user_id,[]);grouped.get(m.user_id).push(m);}
+  return [...grouped].map(([id,rows])=>({id,rows,last:rows.at(-1),unread:rows.filter(m=>m.sender_role==="user"&&!m.read_by_admin).length,p:inboxState.profiles.get(id)})).sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+}
+function inboxRenderList(){
+  const list=$("inboxAdminThreads");if(!list)return;
+  const all=inboxGroups();const term=inboxState.search.trim().toLocaleLowerCase("vi");
+  $("adminMessageCount").textContent=all.reduce((n,g)=>n+g.unread,0);
+  const rows=all.filter(g=>(!inboxState.onlyUnread||g.unread||g.id===inboxState.selected)&&(!term||[g.p?.display_name,g.p?.username,g.id].some(v=>String(v||"").toLocaleLowerCase("vi").includes(term))));
+  list.innerHTML=rows.length?rows.map(g=>`<button type="button" class="inbox-thread-btn ${inboxState.selected===g.id?'selected':''}" data-thread="${escapeHTML(g.id)}"><span class="inbox-avatar">${escapeHTML((g.p?.display_name||g.p?.username||"?").slice(0,1).toUpperCase())}</span><span class="inbox-thread-info"><strong>${escapeHTML(g.p?.display_name||g.p?.username||"Người chơi "+g.id.slice(0,6))}</strong><small>${g.last.sender_role==="admin"?'Bông: ':''}${escapeHTML(g.last.body)}</small><time>${escapeHTML(inboxDate(g.last.created_at))}</time></span>${g.unread?`<span class="inbox-count">${g.unread}</span>`:''}</button>`).join(""):'<div class="inbox-empty">Không có hội thoại phù hợp ♡</div>';
+}
+function inboxRenderAdminThread(force=false){
+  const g=inboxGroups().find(x=>x.id===inboxState.selected);const box=$("inboxAdminBody");if(!box)return;
+  if(!g){$("inboxAdminName").textContent="Chọn một hội thoại";$("inboxAdminUser").textContent="";box.innerHTML='<div class="inbox-empty">Chọn người chơi bên trái để đọc và trả lời.</div>';$("inboxAdminInput").disabled=true;$("inboxAdminSend").disabled=true;return;}
+  $("inboxAdminName").textContent=g.p?.display_name||g.p?.username||"Người chơi "+g.id.slice(0,6);
+  $("inboxAdminUser").textContent=g.p?.username?"@"+g.p.username:"";
+  $("inboxAdminInput").disabled=inboxState.adminSendBusy;$("inboxAdminSend").disabled=inboxState.adminSendBusy;
+  inboxUpdateThread(box,g.rows,true,force);
+}
+async function inboxSelect(id){
+  if(!isAdminSession()||!inboxGroups().some(g=>g.id===id))return;
+  if(inboxState.adminSendBusy)return;
+  if(id!==inboxState.selected&&$("inboxAdminInput").value.trim()&&!confirm("Bỏ tin nhắn đang soạn để chuyển hội thoại?"))return;
+  if(id!==inboxState.selected)$("inboxAdminInput").value="";
+  inboxState.selected=id;inboxState.mobileThread=true;$("inboxAdminLayout").classList.add("thread-open");
+  inboxRenderList();inboxRenderAdminThread(true);
+  const uid=inboxUserId();await inboxMarkRead(inboxState.rows.filter(m=>m.user_id===id),true,uid);await renderAdminMessages();
+}
 async function renderAdminMessages(){
-  const list=$("adminMessagesList");
-  if(!list || !sb || !isAdminSession())return;
-
-  const {data,error}=await sb
-    .from("messages")
-    .select(`
-      id,
-      user_id,
-      sender_role,
-      body,
-      read_by_admin,
-      created_at,
-      profiles:user_id (
-        username,
-        display_name
-      )
-    `)
-    .order("created_at",{ascending:false})
-    .limit(200);
-
-  if(error){
-    console.error("admin messages",error);
-    list.innerHTML=
-      `<div class="admin-empty">Không tải được tin nhắn.</div>`;
-    return;
-  }
-
-  const userMessages=(data || []).filter(m=>m.sender_role==="user");
-
-  $("adminMessageCount").textContent=userMessages.length;
-
-  if(!userMessages.length){
-    list.innerHTML=
-      `<div class="admin-empty">Chưa có tin nhắn nào gửi Bông ♡</div>`;
-    return;
-  }
-
-  list.innerHTML=userMessages.map(m=>{
-    const p=Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
-
-    return `
-      <article class="admin-message-card">
-        <div class="admin-message-top">
-          <div class="admin-message-name">
-            ${escapeHTML(p?.display_name || p?.username || "User")}
-          </div>
-
-          <div class="admin-message-time">
-            ${new Date(m.created_at).toLocaleString("vi-VN")}
-          </div>
-        </div>
-
-        ${
-          p?.username
-          ? `<div class="admin-message-time">@${escapeHTML(p.username)}</div>`
-          : ""
-        }
-
-        <div class="admin-message-text">
-          ${escapeHTML(m.body)}
-        </div>
-
-        <div class="admin-card-actions">
-          <button onclick="markAdminMessageRead('${m.id}')">
-            ${m.read_by_admin ? "Đã đọc" : "Đánh dấu đã đọc"}
-          </button>
-        </div>
-      </article>
-    `;
-  }).join("");
+  inboxReset();if(!sb||!isAdminSession()||!$("adminMessagesList")||inboxState.busy)return;
+  inboxAdminShell();const uid=inboxUserId();inboxState.busy=true;
+  try{
+    const rows=await inboxAllRows();if(uid!==inboxUserId()||!isAdminSession())return;
+    const ids=[...new Set(rows.map(m=>m.user_id))];const profiles=new Map();
+    for(let i=0;i<ids.length;i+=100){const {data,error}=await sb.from("profiles").select("id,username,display_name").in("id",ids.slice(i,i+100));if(error)console.warn("Inbox profiles",error.message);for(const profile of data||[])profiles.set(profile.id,profile);}
+    if(uid!==inboxUserId()||!isAdminSession())return;
+    inboxState.rows=rows;inboxState.profiles=profiles;
+    if(inboxState.selected&&!ids.includes(inboxState.selected)){inboxState.selected=null;inboxState.mobileThread=false;$("inboxAdminLayout")?.classList.remove("thread-open");}
+    inboxRenderList();inboxRenderAdminThread();
+    if(inboxActive()&&!document.hidden&&inboxState.selected&&(window.innerWidth>700||inboxState.mobileThread)){
+      await inboxMarkRead(rows.filter(m=>m.user_id===inboxState.selected),true,uid);
+    }
+    await inboxRefreshBadge();
+  }catch(error){if(uid===inboxUserId())$("inboxAdminError").textContent="Không tải được hộp thư: "+error.message;console.error("admin inbox",error);}
+  finally{inboxState.busy=false;}
 }
-
-async function markAdminMessageRead(id){
-  if(!sb || !isAdminSession())return;
-
-  const {error}=await sb
-    .from("messages")
-    .update({read_by_admin:true})
-    .eq("id",id);
-
-  if(error){
-    showToast("Chưa cập nhật được tin nhắn.");
-    return;
-  }
-
-  await renderAdminMessages();
+async function inboxSendAdmin(){
+  const input=$("inboxAdminInput");const id=inboxState.selected;const uid=inboxUserId();const body=input?.value.trim();
+  if(!isAdminSession()||!id||!body||inboxState.adminSendBusy)return;
+  inboxState.adminSendBusy=true;input.disabled=true;$("inboxAdminSend").disabled=true;$("inboxAdminError").textContent="";
+  try{
+    const {error}=await sb.from("messages").insert({user_id:id,sender_role:"admin",body,read_by_admin:true,read_by_user:false});if(error)throw error;
+    if(uid!==inboxUserId())return;input.value="";showToast("Đã gửi tin nhắn ♡");await renderAdminMessages();
+  }catch(error){if(uid===inboxUserId())$("inboxAdminError").textContent="Chưa gửi được: "+error.message;}
+  finally{inboxState.adminSendBusy=false;if(uid===inboxUserId()&&$("inboxAdminInput")){input.disabled=false;$("inboxAdminSend").disabled=false;}}
 }
+async function inboxDelete(id){
+  if(!isAdminSession()||!inboxState.rows.some(m=>m.id===id&&m.user_id===inboxState.selected)||!confirm("Xóa tin nhắn này khỏi hội thoại của cả hai bên?"))return;
+  const {error}=await sb.from("messages").delete().eq("id",id);if(error)return showToast("Chưa xóa được: "+error.message);await renderAdminMessages();
+}
+async function markAdminMessageRead(id){if(!isAdminSession())return;const {error}=await sb.from("messages").update({read_by_admin:true}).eq("id",id).eq("sender_role","user");if(error)return showToast("Chưa đánh dấu được.");await renderAdminMessages();}
 
 async function renderAdminCharacters(){
   const list=$("adminCharacterList");
@@ -1797,7 +1799,7 @@ async function adminLogout(){
    ========================================================= */
 
 $("chatInput")?.addEventListener("keydown",e=>{
-  if(e.key==="Enter")sendChat();
+  if(e.key==="Enter"&&!e.isComposing)sendChat();
 });
 
 $("searchInput")?.addEventListener("input",renderAll);
@@ -1808,6 +1810,15 @@ clearChatThreadUI();
 updateAuthButton();
 
 initSupabase();
+// Poll only while visible; no Realtime publication or extra service required.
+async function inboxPoll(){
+  if(document.hidden||!sb||!inboxUserId())return;
+  if(inboxActive())await renderAdminMessages();
+  else if(inboxChatOpen()&&!isAdminSession())await loadChatThread();
+  else await inboxRefreshBadge();
+}
+setInterval(()=>void inboxPoll(),15000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)void inboxPoll();});
 
 
 /* =========================================================
