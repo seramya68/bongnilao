@@ -1,0 +1,54 @@
+NHÀ CỦA BÔNG | WEBSITE FULL COMMUNITY v1.1 | 16/11/2026
+================================================================
+
+A. CÓ GÌ TRONG ZIP?
+- index.html: Trang chủ, hồ sơ, admin, review, kho Events/NPC và popup thông báo.
+- assets/css/style.css: CSS đầy đủ, đã sửa lỗi cuộn Bông Admin > Review.
+- assets/css/bong-community.css: Popup thông báo, nút chuông và tim review.
+- assets/js/characters.js + stories.js + playground-data.js: nhân vật/truyện/sự kiện gốc.
+- assets/js/cian-data.js, khang-data.js, do-huyn-data.js, quan-data.js: nhân vật mở rộng.
+- assets/js/app.js: Chức năng web + sửa review không xóa nhầm phản hồi của Bông + hỗ trợ 8.png.
+- assets/js/bong-community.js: Tim review, popup chỉ cho tin mới, lịch sử đọc, admin đăng/sửa/xóa tin.
+- assets/js/supabase-config.js: project BNL đang dùng, chỉ có publishable key.
+- supabase/01_BNL_Community_Thong_Bao_Tim_Review.sql: SQL bổ sung 3 bảng, chính sách RLS, bảo vệ admin_reply.
+
+B. SAO LƯU VÀ CẬP NHẬT CODE (KHÔNG XÓA ẢNH)
+1. Sao lưu D:\BNL trước, ví dụ D:\BNL-BACKUP.
+2. Giải nén ZIP này. Chép index.html và toàn bộ assets/js + assets/css vào D:\BNL; chọn THAY THẾ CÁC FILE CODE cùng tên.
+3. GIỮ NGUYÊN D:\BNL\assets\images\ và D:\BNL\assets\music\ có sẵn.
+4. KHÔNG xóa thư mục supabase có sẵn. File SQL mới chỉ là tài liệu để tự chạy trong Supabase Dashboard.
+5. Không cần thêm file quan-gallery.js vì app.js đã đọc danh sách galleryFiles (bao gồm 8.png).
+
+C. SUPABASE — DỰ ÁN ĐÚNG
+1. Vào https://supabase.com/dashboard/project/qkkftribgkakexkfuxip/sql/new
+2. Chọn dự án BNL (qkkftribgkakexkfuxip). Sao lưu database trước khi áp dụng SQL nếu dữ liệu quan trọng.
+3. Dùng SQL Editor → New query, mở supabase/01_BNL_Community_Thong_Bao_Tim_Review.sql và dán toàn bộ, bấm Run.
+4. Cuối script phải trả về 3 hàng: Thông báo, Đã xem, Tim review.
+5. Vào Database > Tables, kiểm tra 3 bảng bong_announcements, bong_announcement_reads, bong_review_likes.
+6. Không chạy lại schema gốc. Không cần tạo user admin mới — tài khoản Admin hiện có giữ nguyên.
+7. Không đưa bất kỳ service_role/secret key nào lên GitHub. supabase-config.js chỉ chứa public/publishable key.
+
+D. GITHUB PAGES
+Cách dễ nhất dùng GitHub Desktop: clone repo seramya68/bongnilao, chép file CODE mới theo đúng đường dẫn repo, commit rồi Push origin.
+Nếu thao tác web: https://github.com/seramya68/bongnilao → mở từng thư mục đích, Add file → Upload files → Commit changes.
+Ở gốc repo phải có index.html. Dưới assets/css, assets/js phải có các file trong ZIP.
+KHÔNG xóa ảnh hay nhạc đã upload trên GitHub; nếu trước đó chưa upload, upload chúng từ D:\BNL.
+Chờ GitHub Pages hoàn tất deploy. Mở https://seramya68.github.io/bongnilao/?v=community-v11 rồi nhấn Ctrl+F5.
+
+E. THỬ CHỨC NĂNG THEO THỨ TỰ
+1. Mở bằng tài khoản thường: nhân vật và review cũ vẫn có. Bấm tim một review; bấm lại để bỏ tim.
+2. Bông Admin → Review: cuộn được danh sách; ghi phản hồi và Lưu phản hồi.
+3. Bông Admin → 📣 Thông báo web: tạo tin thử với tiêu đề 'Bông vừa cập nhật prompt ♡'. Không cần link.
+4. Mở website bằng trình duyệt/ẩn danh khác: sau khi tắt popup chào mừng, thấy thông báo mới tự bật.
+5. Đóng tin mới, tải lại: KHÔNG thấy lại tin cũ. Bấm 🔔 để xem lịch sử.
+6. Đăng tin thứ hai: chỉ tin mới tự bật, tin cũ vẫn xem được trong 🔔.
+7. Sửa review đã có phản hồi của Bông: câu Bông trả lời phải còn nguyên.
+
+F. LƯU Ý
+- Đây là đầy đủ CODE, không phải bản clone ảnh/MP3 gốc. Giữ thư mục media trong D:\BNL.
+- Người không đăng nhập lưu lịch sử đọc bằng localStorage trong trình duyệt; xóa dữ liệu web hoặc đổi thiết bị có thể lại thấy popup.
+- Người đăng nhập lưu thêm lịch sử đọc trong Supabase theo user_id.
+- Không gửi email khi Bông đăng tin trên web. Mục Link & mail cũ là chức năng riêng, không bị xóa.
+- Bông là người duy nhất được trả lời review (bảo vệ bằng giao diện + SQL trigger); không có hệ thống reply ngang giữa người chơi.
+- Muốn một tin cũ sửa lại mà hiển thị như tin mới, hãy ĐĂNG THÔNG BÁO MỚI thay vì sửa bản cũ.
+- Chỉ đăng SQL sau khi bà đã kiểm tra. Tôi chưa chạy SQL hoặc commit GitHub trên tài khoản của bà.
